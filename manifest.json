@@ -1,0 +1,22 @@
+{
+  "name": "Zidan Developments — زيدان للتطوير العقاري",
+  "short_name": "زيدان",
+  "description": "أكثر من 73 مشروعاً عمرانياً متميزاً في القاهرة الجديدة",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "images/logo-white.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "images/logo-white.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

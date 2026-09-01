@@ -1,0 +1,1840 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بوابة إدارة الأنظمة والموارد — Enterprise Studio v3.0</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+    <style>
+        /* ══════════════════════════════════════════════════════
+           PHASE 1: LUXURY LOGIN PORTAL
+           ══════════════════════════════════════════════════════ */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Cairo', 'Inter', sans-serif; letter-spacing: -0.01em;
+            background: #050505;
+            color: #e2e8f0;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        #login-container {
+            position: fixed; inset: 0; z-index: 100;
+            background: radial-gradient(circle at center, #0f1422 0%, #06080d 100%);
+            display: flex; align-items: center; justify-content: center;
+            transition: opacity 0.5s ease, visibility 0.5s;
+        }
+        #login-container::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: url('images/projects-map.jpg') center/cover; opacity: 0.04; mix-blend-mode: overlay;
+        }
+        #login-container.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+        .login-card {
+            position: relative; z-index: 2;
+            background: rgba(14, 18, 28, 0.65);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-radius: 16px; padding: 44px 38px;
+            width: 100%; max-width: 420px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: transform 0.3s ease;
+        }
+        .login-card.shake { animation: shakeCard 0.4s ease; border-color: rgba(248,113,113,0.5); }
+        @keyframes shakeCard { 20%,60%{transform:translateX(-8px)} 40%,80%{transform:translateX(8px)} }
+
+        .login-header { text-align: center; margin-bottom: 30px; }
+        .login-icon { 
+            width: 64px; height: 64px; border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05));
+            border: 1px solid rgba(255,255,255,0.3); color: #ffffff;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 16px; font-size: 28px;
+            box-shadow: 0 0 20px rgba(255,255,255,0.1);
+        }
+        .login-header h2 { font-size: 20px; color: #fff; font-weight: 800; margin-bottom: 6px; letter-spacing: -0.5px; }
+        .login-header p { font-size: 13.5px; color: #94a3b8; font-weight: 500; }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 12.5px; font-weight: 700; color: #cbd5e1; margin-bottom: 8px; }
+        .form-input {
+            width: 100%; padding: 12px 16px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;
+            font-size: 14.5px; font-family: inherit; background: rgba(0,0,0,0.3); color: #fff;
+            transition: all 0.25s;
+        }
+        .form-input:focus { outline: none; border-color: #ffffff; background: rgba(0,0,0,0.5); box-shadow: 0 0 0 2px rgba(255,255,255,0.1); }
+        .form-input::placeholder { color: #475569; }
+
+        .btn-login {
+            width: 100%; padding: 13px; border: none; border-radius: 8px;
+            background: #ededed; color: #000000; font-weight: 700;
+            font-size: 15px; font-weight: 800; font-family: inherit; cursor: pointer; 
+            transition: all 0.25s; box-shadow: 0 6px 15px rgba(255,255,255,0.25);
+        }
+        .btn-login:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255,255,255,0.4); }
+
+        .login-alert {
+            display: none; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px;
+            background: rgba(220,38,38,0.1); border: 1px solid rgba(220,38,38,0.3); 
+            color: #fca5a5; font-size: 13px; line-height: 1.6; text-align: center;
+        }
+        .login-footer { text-align: center; margin-top: 24px; font-size: 11.5px; color: #64748b; line-height: 1.6; }
+
+        /* ══════════════════════════════════════════════════════
+           WARP OVERLAY
+           ══════════════════════════════════════════════════════ */
+        #warp-overlay {
+            position: fixed; inset: 0; z-index: 200;
+            background: #040508; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 16px;
+            opacity: 0; visibility: hidden; pointer-events: none;
+            transition: opacity 0.4s ease, visibility 0.4s;
+        }
+        #warp-overlay.active { opacity: 1; visibility: visible; pointer-events: auto; }
+        .warp-spinner { width:46px;height:46px;border:3px solid rgba(255,255,255,0.1);border-top-color:#ffffff;border-radius:50%;animation:spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+        @keyframes spin { to{transform:rotate(360deg)} }
+
+        /* ══════════════════════════════════════════════════════
+           PHASE 2: VISUAL STUDIO
+           ══════════════════════════════════════════════════════ */
+        #studio {
+            position: fixed; inset: 0; display: none; flex-direction: column;
+            background: #050505;
+        }
+        #studio.active { display: flex; }
+
+        /* Ribbon Toolbar */
+        .ribbon {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px; height: 60px; min-height: 60px;
+            background: rgba(5, 5, 5, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255,255,255,0.06); z-index: 20;
+        }
+        .ribbon-left { display: flex; align-items: center; gap: 8px; }
+        .ribbon-logo img { height: 28px; margin-left: 16px; }
+        .ribbon-sep { width: 1px; height: 32px; background: rgba(255,255,255,0.03); margin: 0 10px; }
+
+        .rbtn {
+            padding: 8px 16px; border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; font-size: 12.5px;
+            font-family: inherit; font-weight: 600; cursor: pointer; background: rgba(255,255,255,0.03);
+            color: #cbd5e1; transition: all 0.2s; white-space: nowrap; display: flex; align-items: center; gap: 6px;
+        }
+        .rbtn:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); color: #fff; }
+        .rbtn.primary, .rbtn.accent { 
+            background: #ededed; color: #000000; font-weight: 700; 
+            border: none; font-weight: 800; box-shadow: 0 4px 12px rgba(255,255,255,0.2);
+        }
+        .rbtn.primary:hover, .rbtn.accent:hover { background: #ffffff; box-shadow: 0 6px 18px rgba(255,255,255,0.35); transform: translateY(-1px); }
+        .rbtn.danger { color: #f87171; border-color: rgba(248,113,113,0.15); }
+        .rbtn.danger:hover { background: rgba(248,113,113,0.1); border-color: rgba(248,113,113,0.3); }
+        .chart-type-btn { font-size: 12px; padding: 6px 12px; }
+        .chart-type-btn.active { background: #ffffff; color: #000; border-color: #ffffff; font-weight: 800; }
+
+        /* Workspace */
+        .workspace { display: flex; flex: 1; overflow: hidden; background: #050505; }
+
+        /* Left Sidebar */
+        .sidebar {
+            width: 260px; min-width: 260px; background: #0a0a0a;
+            border-left: 1px solid rgba(255,255,255,0.04);
+            display: flex; flex-direction: column; overflow: hidden; z-index: 10;
+            box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+        }
+        .sidebar-head {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 13.5px; font-weight: 800; color: #fff; background: rgba(0,0,0,0.2);
+        }
+        .sidebar-scroll { flex: 1; overflow-y: auto; padding: 14px; }
+        .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+        .sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+        .sidebar-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.4); }
+
+        .scard {
+            padding: 12px 14px; margin-bottom: 10px; border-radius: 10px;
+            background: #18181b; border: 1px solid rgba(255,255,255,0.04);
+            cursor: pointer; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .scard:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); transform: translateX(-2px); }
+        .scard.active { 
+            border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.03); 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5); transform: translateX(-4px);
+        }
+        .scard-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+        .scard-num { font-size: 11px; font-weight: 800; color: #ffffff; }
+        .scard-badge { font-size: 10px; padding: 3px 8px; border-radius: 20px; background: rgba(255,255,255,0.03); color: #94a3b8; font-weight: 600; }
+        .scard.active .scard-badge { background: rgba(255,255,255,0.06); color: #ffffff; }
+        .scard-title { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .scard-actions { display: flex; gap: 6px; }
+        .scard-btn {
+            padding: 4px 8px; border: none; border-radius: 6px; font-size: 11px;
+            cursor: pointer; background: rgba(255,255,255,0.04); color: #94a3b8; transition: all 0.2s;
+        }
+        .scard-btn:hover { background: rgba(255,255,255,0.06); color: #fff; }
+        .scard-btn.del:hover { background: rgba(248,113,113,0.15); color: #f87171; }
+
+        /* Center Stage */
+        .stage {
+            flex: 1; display: flex; align-items: center; justify-content: center;
+            padding: 40px; overflow: auto; position: relative;
+        }
+        /* Dot matrix background pattern for stage */
+        .stage::before {
+            content: ''; position: absolute; inset: 0; z-index: 0; opacity: 0.15;
+            background-image: radial-gradient(rgba(255,255,255,0.4) 1px, transparent 1px);
+            background-size: 20px 20px; pointer-events: none;
+        }
+        .canvas {
+            width: 100%; max-width: 1280px; min-height: 75vh; 
+            background: #0a0a0a;
+            border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);
+            padding: 50px; display: flex; align-items: flex-start; justify-content: center;
+            color: #fff; position: relative; z-index: 1;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.8), 0 0 50px rgba(255,255,255,0.06);
+            overflow: auto;
+            margin: auto;
+        }
+        /* Make sure inner wrappers span full width for centering */
+        .canvas > div { width: 100%; margin-top: auto; margin-bottom: auto; }
+
+        .canvas::-webkit-scrollbar { width: 6px; height: 6px; }
+        .canvas::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 6px; }
+
+        /* Canvas editable elements */
+        .canvas [contenteditable="true"] {
+            outline: none; border: 1px dashed transparent; border-radius: 6px;
+            padding: 4px 6px; transition: all 0.2s;
+        }
+        .canvas [contenteditable="true"]:hover { border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.03); }
+        .canvas [contenteditable="true"]:focus { border: 1px solid #ffffff; background: rgba(255,255,255,0.08); box-shadow: 0 0 15px rgba(255,255,255,0.1); }
+
+        .img-wrap {
+            position: relative; cursor: pointer; border-radius: 12px; overflow: hidden;
+            display: inline-block; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+        .img-wrap img { display: block; max-height: 340px; border-radius: 12px; width: auto; transition: transform 0.4s; }
+        .img-wrap:hover img { transform: scale(1.02); }
+        .img-wrap .img-overlay {
+            position: absolute; inset: 0; background: rgba(11, 13, 17, 0.6);
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .img-wrap:hover .img-overlay { opacity: 1; }
+        .img-badge { padding: 10px 22px; border-radius: 8px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); backdrop-filter: blur(8px); color: #fff; font-size: 13px; font-weight: 700; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+
+        /* Cards in canvas */
+        .c-card {
+            background: #18181b; border: 1px solid rgba(255,255,255,0.05);
+            border-top: 1px solid rgba(255,255,255,0.2); border-right: none; border-radius: 16px; padding: 26px; transition: background 0.3s;
+        }
+        .c-card:hover { background: rgba(255,255,255,0.04); }
+        .c-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 800; padding: 4px 16px; border-radius: 50px; background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05)); border: 1px solid rgba(255,255,255,0.3); color: #ffffff; margin-bottom: 14px; }
+        .c-heading { font-family: 'Cairo'; font-size: 30px; font-weight: 900; line-height: 1.3; margin-bottom: 12px; letter-spacing: -0.5px; }
+        .c-desc { font-size: 14.5px; color: #cbd5e1; line-height: 1.8; margin-bottom: 18px; }
+        .c-loc { font-size: 14px; font-weight: 700; color: #f8fafc; margin-bottom: 14px; display: inline-block; padding: 4px 12px; background: rgba(255,255,255,0.05); border-radius: 6px; }
+
+        .spec-item {
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
+            padding: 8px 14px; border-radius: 8px; margin-bottom: 6px; font-size: 13.5px; color: #e2e8f0; font-weight: 600;
+        }
+        .spec-del { background: none; border: none; color: #f87171; font-size: 16px; cursor: pointer; padding: 0 4px; transition: color 0.2s; }
+        .spec-del:hover { color: #ef4444; }
+
+        /* White card variant for founder */
+        .c-card-white {
+            background: linear-gradient(145deg, #ffffff, #f1f5f9); border-radius: 20px; padding: 34px; color: #000000; font-weight: 700;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.4);
+        }
+        .c-card-white .c-badge { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3); color: #334155; }
+        .c-card-white .c-desc { color: #334155; }
+
+        /* Grid helpers */
+        .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; width: 100%; }
+        .g2-wide { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 45px; align-items: center; width: 100%; }
+        .g3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; width: 100%; }
+        .g7 { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; width: 100%; }
+
+        /* Stat banner */
+        .stat-box {
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02)); 
+            padding: 16px 24px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.2);
+            border-right: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; gap: 18px;
+        }
+        .stat-num { font-family: 'Cairo'; font-size: 44px; font-weight: 900; color: #ffffff; text-shadow: 0 4px 15px rgba(255,255,255,0.3); }
+
+        /* Gallery fullscreen */
+        .gallery-full { text-align: center; width: 100%; }
+        .gallery-full img { max-width: 100%; max-height: 460px; border-radius: 16px; object-fit: contain; box-shadow: 0 20px 50px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); }
+
+        /* Milestone */
+        .milestone { display: flex; gap: 16px; align-items: flex-start; padding: 18px; border-radius: 12px; background: #18181b; border: 1px solid rgba(255,255,255,0.05); transition: transform 0.3s, border-color 0.3s; }
+        .milestone:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.3); }
+        .milestone-num { width: 42px; height: 42px; border-radius: 50%; background: #ededed; color: #000; box-shadow: 0 4px 15px rgba(255,255,255,0.4); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 900; flex-shrink: 0; }
+
+        /* Area / Portfolio cards */
+        .area-card {
+            min-width: 260px; max-width: 280px; flex-shrink: 0;
+            padding: 20px; border-radius: 14px; text-align: center;
+            background: #18181b;
+            border: 1px solid rgba(255,255,255,0.08); transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+            position: relative;
+        }
+        .area-card:hover { transform: translateY(-4px); border-color: rgba(255,255,255,0.3); box-shadow: 0 15px 30px rgba(0,0,0,0.4); }
+        .item-del-btn { position: absolute; top: 10px; left: 10px; background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.2); color: #f87171; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; transition: all 0.2s; }
+        .area-card:hover .item-del-btn { opacity: 1; }
+        .item-del-btn:hover { background: rgba(248,113,113,0.2); color: #ef4444; transform: scale(1.1); }
+
+        
+        /* Custom scrollbar for horizontal scrolling areas */
+        .h-scroll { display: flex; overflow-x: auto; gap: 14px; padding-bottom: 14px; width: 100%; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.2) transparent; }
+        .h-scroll::-webkit-scrollbar { height: 6px; }
+        .h-scroll::-webkit-scrollbar-track { background: transparent; }
+        .h-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+        .h-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+
+        
+        /* Drag & Drop */
+        .scard { cursor: grab; user-select: none; }
+        .scard:active { cursor: grabbing; }
+        .scard.dragging { opacity: 0.4; transform: scale(0.95); }
+        .scard.drag-over { border: 2px dashed rgba(255,255,255,0.5) !important; background: rgba(255,255,255,0.05) !important; }
+        
+        /* Save Toast */
+        .save-toast {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
+            background: rgba(255,255,255,0.1); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 12px 28px;
+            border-radius: 12px; font-size: 14px; font-weight: 600; z-index: 99999;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s;
+            opacity: 0; pointer-events: none; display: flex; align-items: center; gap: 8px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+        .save-toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+        /* Region tags */
+        .tag { display: inline-block; padding: 6px 16px; border-radius: 50px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); font-size: 12.5px; font-weight: 700; color: #e2e8f0; margin: 4px; transition: all 0.2s; }
+        .tag:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.4); color: #ffffff; }
+
+        /* Brand chips */
+        .chip { display: inline-block; padding: 5px 14px; border-radius: 50px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); font-size: 12px; font-weight: 600; color: #cbd5e1; margin: 3px; }
+
+        /* Quote */
+        .quote-banner { text-align: center; margin-top: 24px; padding: 22px; border-radius: 14px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent); border-top: 1px solid rgba(255,255,255,0.2); border-bottom: 1px solid rgba(255,255,255,0.2); font-size: 18px; font-weight: 700; color: #f1f5f9; font-style: italic; position: relative; }
+        .quote-banner::before { content: '"'; position: absolute; right: 20px; top: -10px; font-size: 60px; color: rgba(255,255,255,0.2); font-family: serif; line-height: 1; }
+
+        /* Big hero text for "why" slide */
+        .hero-text { font-family: 'Cairo'; font-size: 64px; font-weight: 900; text-align: center; line-height: 1.2; background: linear-gradient(135deg, #ffffff, #ffffff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5)); }
+
+        /* ══════════════════════════════════════════════════════
+           MODALS
+           ══════════════════════════════════════════════════════ */
+        .modal {
+            position: fixed; inset: 0; z-index: 500;
+            background: rgba(4,6,10,0.85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; visibility: hidden; pointer-events: none;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        .modal.active { opacity: 1; visibility: visible; pointer-events: auto; }
+        .modal-box {
+            background: #0a0a0a;
+            border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 30px 80px rgba(0,0,0,0.8), 0 0 30px rgba(255,255,255,0.08);
+            border-radius: 20px; padding: 32px 34px; width: 100%; max-width: 540px;
+            max-height: 85vh; overflow-y: auto; color: #e2e8f0;
+            transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+        }
+        .modal.active .modal-box { transform: scale(1); }
+        
+        .modal-box h2 { font-size: 20px; font-weight: 800; margin-bottom: 20px; color: #fff; display: flex; align-items: center; gap: 8px; }
+        .modal-box h2::before { content: ''; display: block; width: 6px; height: 20px; background: #ffffff; border-radius: 4px; }
+        
+        .modal-box label { display: block; font-size: 13.5px; color: #cbd5e1; margin-bottom: 6px; font-weight: 700; }
+        .modal-input {
+            width: 100%; padding: 12px 16px; border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px; background: rgba(0,0,0,0.25); color: #fff; font-size: 14.5px;
+            font-family: inherit; margin-bottom: 18px; transition: all 0.25s;
+        }
+        .modal-input:focus { outline: none; border-color: #ffffff; background: rgba(0,0,0,0.4); box-shadow: 0 0 0 2px rgba(255,255,255,0.1); }
+        textarea.modal-input { min-height: 80px; resize: vertical; }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 10px; }
+
+        /* Image preset grid */
+        .preset-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+        .preset-item {
+            border-radius: 12px; overflow: hidden; cursor: pointer; border: 2px solid transparent;
+            transition: all 0.25s; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .preset-item:hover { border-color: #ffffff; transform: translateY(-4px); box-shadow: 0 8px 20px rgba(255,255,255,0.25); }
+        .preset-item img { width: 100%; height: 90px; object-fit: cover; display: block; }
+        .preset-name { position: absolute; bottom: 0; left: 0; right: 0; padding: 6px 4px; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); font-size: 11px; font-weight: 700; color: #fff; text-align: center; }
+
+        /* ══════════════════════════════════════════════════════
+           TOAST
+           ══════════════════════════════════════════════════════ */
+        #toast {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(80px);
+            padding: 14px 32px; border-radius: 12px; background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 1px solid rgba(255,255,255,0.3); color: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 20px rgba(255,255,255,0.15);
+            font-size: 14.5px; font-weight: 700; z-index: 999;
+            transition: transform 0.4s cubic-bezier(0.16,1,0.3,1), opacity 0.4s;
+            opacity: 0; pointer-events: none; display: flex; align-items: center; gap: 10px;
+        }
+        #toast::before { content: '✨'; font-size: 16px; }
+        #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    
+        /* ══════════════════════════════════════════════════════
+           DASHBOARD RESPONSIVE DESIGN
+           ══════════════════════════════════════════════════════ */
+        
+        /* ── Tablet (max 1024px) ── */
+        @media (max-width: 1024px) {
+            .sidebar { width: 240px; }
+            .canvas { padding: 30px; max-width: 100%; }
+            .tbtn span { display: none; }
+            .tbtn { padding: 8px 12px; font-size: 14px; }
+        }
+
+        /* ── Tablet Portrait & Mobile (max 768px) ── */
+        @media (max-width: 768px) {
+            .layout { flex-direction: column; }
+            .sidebar { 
+                width: 100%; height: auto; max-height: 35vh; 
+                border-right: none; border-bottom: 1px solid rgba(255,255,255,0.08);
+                overflow-y: auto;
+            }
+            #sidebar-list { 
+                display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 10px; padding: 10px;
+                scrollbar-width: thin;
+            }
+            .scard { 
+                min-width: 160px; flex-shrink: 0; padding: 10px 12px;
+            }
+            .scard-actions { flex-wrap: nowrap; }
+            .scard-btn { padding: 2px 6px; font-size: 11px; }
+            .stage { padding: 16px; }
+            .canvas { 
+                padding: 20px 16px; min-height: auto; border-radius: 10px;
+            }
+            .g2 { grid-template-columns: 1fr !important; gap: 20px; }
+            .toolbar { flex-wrap: wrap; gap: 6px; padding: 8px 12px; }
+            .tbtn { padding: 6px 10px; font-size: 12px; }
+            .rbtn { padding: 8px 14px; font-size: 12px; }
+            .area-card { min-width: 220px; max-width: 260px; }
+            .h-scroll { gap: 10px; }
+            .c-heading { font-size: 24px !important; }
+            .stat-num { font-size: 42px !important; }
+        }
+
+        /* ── Mobile (max 480px) ── */
+        @media (max-width: 480px) {
+            .sidebar { max-height: 30vh; }
+            .scard { min-width: 140px; }
+            .scard-title { font-size: 12px; }
+            .stage { padding: 10px; }
+            .canvas { padding: 16px 12px; }
+            .toolbar { padding: 6px 10px; }
+            .tbtn { padding: 5px 8px; font-size: 11px; }
+            .tbtn span { display: none; }
+            .area-card { min-width: 200px; max-width: 240px; padding: 14px; }
+            .c-heading { font-size: 20px !important; }
+            .c-badge { font-size: 11px !important; }
+            .c-desc { font-size: 13px !important; }
+            .modal-box { padding: 22px 16px; border-radius: 14px; }
+            #chart-type-switch { gap: 4px; }
+            #chart-type-switch .tbtn { padding: 5px 8px; font-size: 11px; }
+            .analytics-grid { grid-template-columns: 1fr !important; gap: 14px; }
+            .analytics-panel { padding: 12px !important; }
+            .analytics-canvas-wrap { height: 160px !important; }
+            .milestone { padding: 12px; }
+            .milestone-num { width: 34px; height: 34px; font-size: 13px; }
+            .save-toast { font-size: 12px; padding: 10px 20px; }
+        }
+
+        </style>
+</head>
+<body>
+
+<!-- ════════ PHASE 1: STEALTH LOGIN ════════ -->
+<div id="login-container">
+    <div class="login-card" id="login-card">
+        <div class="login-header">
+            <div class="login-icon">🏢</div>
+            <h2>بوابة إدارة الأنظمة المؤسسية</h2>
+            <p>نظام تسجيل الدخول الداخلي الموحد — الإصدار 2.4</p>
+        </div>
+        <div class="login-alert" id="login-alert"></div>
+        <form onsubmit="event.preventDefault(); doLogin();">
+            <div class="form-group">
+                <label>اسم المستخدم (Username)</label>
+                <input type="text" class="form-input" id="inp-user" value="admin" autocomplete="username">
+            </div>
+            <div class="form-group">
+                <label>كلمة المرور (Password)</label>
+                <input type="password" class="form-input" id="inp-pass" placeholder="••••••••••••" autocomplete="current-password">
+            </div>
+            <button type="submit" class="btn-login">تسجيل الدخول للنظام</button>
+        </form>
+        <div class="login-footer">
+            جميع العمليات مسجلة وخاضعة للمراقبة الأمنية المشفرة.<br>
+            © 2026 Enterprise Operations Infrastructure
+        </div>
+    </div>
+</div>
+
+<!-- ════════ WARP OVERLAY ════════ -->
+<div id="warp-overlay">
+    <div class="warp-spinner"></div>
+    <h2 style="color:#fff;font-size:20px;">تم التحقق بنجاح</h2>
+    <p style="color:#94a3b8;font-size:14px;">جاري تهيئة استوديو التحرير البصري…</p>
+</div>
+
+<!-- ════════ PHASE 2: VISUAL STUDIO ════════ -->
+<div id="studio">
+    <!-- Ribbon -->
+    <header class="ribbon">
+        <div class="ribbon-left">
+            <div class="ribbon-logo"><img src="images/logo-white.png" alt="Logo"></div>
+            <div class="ribbon-sep"></div>
+            <button class="rbtn primary" onclick="openModal('m-add')">➕ مشروع جديد</button>
+            <button class="rbtn" onclick="dupCurrent()">📋 تكرار</button>
+            <div class="ribbon-sep"></div>
+            <button class="rbtn" onclick="openModal('m-img')">🖼️ تغيير الصورة</button>
+            <button class="rbtn" onclick="addSpec()">✨ إضافة ميزة</button>
+            <div class="ribbon-sep"></div>
+            <button class="rbtn" onclick="openModal('m-theme')">🎨 الهوية البصرية</button>
+            <button class="rbtn" onclick="showAnalytics()">📊 إحصائيات الزوار</button>
+            <div class="ribbon-sep"></div>
+            <button class="rbtn" onclick="openModal('m-cloud')">☁️ ربط السحابة</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+            <a href="index.html" target="_blank" class="rbtn">👁️ عرض مباشر</a>
+            <button class="rbtn primary" onclick="saveAll()" title="Ctrl+S">💾 حفظ</button>
+            <button class="rbtn" onclick="undo()" title="تراجع (Ctrl+Z)">↩️</button>
+            <button class="rbtn" onclick="exportJSON()" title="نسخة احتياطية">📥 تصدير</button>
+            <button class="rbtn" onclick="printPDF()" title="تصدير كـ PDF">📄 طباعة</button>
+            <button class="rbtn" onclick="openModal('m-sec')">⚙️ الأمان</button>
+            <button class="rbtn danger" onclick="doLogout()">🚪 خروج</button>
+        </div>
+    </header>
+
+    <!-- Workspace -->
+    <div class="workspace">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-head">
+                <span>📑 الشرائح (<span id="slide-count">0</span>)</span>
+                <button class="scard-btn" onclick="openModal('m-add')" style="font-size:12px;padding:4px 10px;">+ جديد</button>
+            </div>
+            
+            <div class="sidebar-head" style="padding-top:10px; border-bottom:none; padding-bottom:0;">
+                <input type="text" id="slide-search" placeholder="🔍 بحث في الشرائح..." style="width:100%; padding:8px 12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:#fff; font-family:Cairo; font-size:12px; outline:none;" oninput="filterSlides(this.value)">
+            </div>
+<div class="sidebar-scroll" id="sidebar-list"></div>
+        </aside>
+
+        <!-- Center Stage -->
+        <main class="stage">
+            <div class="canvas" id="canvas"></div>
+        </main>
+    </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- ════════ MODALS ════════ -->
+
+
+<!-- Theme Modal -->
+<div class="modal" id="m-theme">
+    <div class="modal-box">
+        <h2>🎨 تخصيص الهوية البصرية</h2>
+        <p style="font-size:12px; color:#aaa; margin-bottom:20px;">اختر لون الهوية (Accent Color) الذي سيتم تطبيقه مباشرة على أزرار الموقع، شريط التحميل، وإضاءة الخلفية — التغيير يظهر فوراً في الصفحة الرئيسية.</p>
+
+        <!-- Live preview strip -->
+        <div id="theme-preview-strip" style="border-radius:14px; padding:20px; margin-bottom:20px; background:#0a0a0a; border:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:space-between; gap:16px;">
+            <div>
+                <div style="font-size:11px; color:#94a3b8; margin-bottom:6px;">معاينة مباشرة</div>
+                <div id="theme-preview-btn" style="display:inline-block; padding:10px 22px; border-radius:8px; font-weight:800; font-size:13px; color:#000; transition:background 0.2s;">زر تجريبي</div>
+            </div>
+            <div style="width:44px; height:44px; border-radius:50%; border:2px solid rgba(255,255,255,0.15); flex-shrink:0;" id="theme-preview-swatch"></div>
+        </div>
+
+        <label>اللون المخصص</label>
+        <div style="display:flex; gap:10px; margin-bottom:20px;">
+            <input type="color" id="theme-color-picker" style="width:50px; height:50px; border:none; border-radius:8px; cursor:pointer; padding:0; background:none; flex-shrink:0;" oninput="updateThemePreview(this.value)">
+            <input type="text" id="theme-color-hex" class="modal-input" style="flex:1; margin:0;" placeholder="#ffffff" oninput="handleHexInput(this.value)">
+        </div>
+
+        <label>ألوان جاهزة</label>
+        <div style="display:flex; gap:10px; margin-bottom:8px; flex-wrap:wrap;">
+            <button class="tbtn" onclick="setTheme('#ffffff')" style="background:#ffffff; color:#000; border:none;">أبيض (افتراضي)</button>
+            <button class="tbtn" onclick="setTheme('#d4af37')" style="background:#d4af37; color:#fff; border:none;">ذهبي</button>
+            <button class="tbtn" onclick="setTheme('#3b82f6')" style="background:#3b82f6; color:#fff; border:none;">أزرق</button>
+            <button class="tbtn" onclick="setTheme('#10b981')" style="background:#10b981; color:#fff; border:none;">أخضر</button>
+            <button class="tbtn" onclick="setTheme('#f87171')" style="background:#f87171; color:#fff; border:none;">أحمر</button>
+            <button class="tbtn" onclick="setTheme('#a855f7')" style="background:#a855f7; color:#fff; border:none;">بنفسجي</button>
+        </div>
+        <div id="theme-hex-error" style="display:none; font-size:12px; color:#f87171; margin-bottom:10px;">صيغة اللون غير صحيحة، استخدم كود Hex مثل ‎#d4af37</div>
+
+        <div class="modal-footer">
+            <button class="tbtn" onclick="closeModal('m-theme')">إلغاء</button>
+            <button class="tbtn primary" onclick="saveTheme()">حفظ التغييرات</button>
+        </div>
+    </div>
+</div>
+
+<!-- Analytics Modal -->
+<div class="modal" id="m-analytics">
+    <div class="modal-box" style="max-width: 680px; width:95%;">
+        <h2>📊 إحصائيات تفاعل العملاء</h2>
+        <p style="font-size:12px; color:#aaa; margin-bottom:16px;">هذه البيانات توضح أكثر الشرائح والمشاريع التي يهتم بها العملاء أثناء التصفح (من جهاز العميل الحالي).</p>
+
+        <!-- Chart type switcher -->
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:18px; flex-wrap:wrap;">
+            <span style="font-size:12px; color:#94a3b8; font-weight:700;">شكل الرسم:</span>
+            <div id="chart-type-switch" style="display:flex; gap:6px;">
+                <button class="tbtn chart-type-btn" data-type="bar" onclick="setChartType('bar')">📶 أعمدة</button>
+                <button class="tbtn chart-type-btn" data-type="line" onclick="setChartType('line')">📈 خطي</button>
+                <button class="tbtn chart-type-btn" data-type="pie" onclick="setChartType('pie')">🥧 دائري</button>
+                <button class="tbtn chart-type-btn" data-type="doughnut" onclick="setChartType('doughnut')">🍩 حلقي</button>
+            </div>
+        </div>
+
+        <div class="analytics-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:20px; margin-bottom:12px;">
+            <div class="analytics-panel" style="background:rgba(255,255,255,0.03); padding:15px; border-radius:10px; border:1px solid rgba(255,255,255,0.05);">
+                <h4 style="color:#fff; margin-bottom:10px; font-size:14px;">⏱️ أكثر الشرائح مشاهدة (بالثواني)</h4>
+                <div class="analytics-canvas-wrap" style="position:relative; height:190px; margin-bottom:10px;">
+                    <canvas id="chart-time"></canvas>
+                </div>
+                <div id="analytics-time" style="font-size:11.5px; color:#cbd5e1; line-height:1.9; max-height:80px; overflow-y:auto;">لا توجد بيانات بعد.</div>
+            </div>
+            <div class="analytics-panel" style="background:rgba(255,255,255,0.03); padding:15px; border-radius:10px; border:1px solid rgba(255,255,255,0.05);">
+                <h4 style="color:#fff; margin-bottom:10px; font-size:14px;">🖱️ أكثر المشاريع تفاعلاً (النقرات)</h4>
+                <div class="analytics-canvas-wrap" style="position:relative; height:190px; margin-bottom:10px;">
+                    <canvas id="chart-clicks"></canvas>
+                </div>
+                <div id="analytics-clicks" style="font-size:11.5px; color:#cbd5e1; line-height:1.9; max-height:80px; overflow-y:auto;">لا توجد بيانات بعد.</div>
+            </div>
+        </div>
+        
+        <div class="modal-footer" style="justify-content:space-between;">
+            <button class="tbtn danger" onclick="clearAnalytics()">🗑️ مسح البيانات</button>
+            <button class="tbtn primary" onclick="closeModal('m-analytics')">إغلاق</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Add Project -->
+<div class="modal" id="m-add">
+    <div class="modal-box">
+        <h2>➕ إضافة شريحة مشروع جديدة</h2>
+        <label>اسم المشروع</label>
+        <input class="modal-input" id="add-name" placeholder="مثال: كمبوند الفخامة — التجمع الخامس">
+        <label>التصنيف</label>
+        <input class="modal-input" id="add-badge" value="معرض المشاريع — السكني">
+        <label>الموقع</label>
+        <input class="modal-input" id="add-loc" placeholder="القاهرة الجديدة — بيت الوطن">
+        <label>الوصف</label>
+        <textarea class="modal-input" id="add-desc" placeholder="تصميم معماري راقٍ وتشطيبات فائقة الجودة..."></textarea>
+        <div class="modal-footer">
+            <button class="rbtn" onclick="closeModal('m-add')">إلغاء</button>
+            <button class="rbtn primary" onclick="confirmAdd()">إنشاء الشريحة</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Image Selector -->
+<div class="modal" id="m-img">
+    <div class="modal-box">
+        <h2>🖼️ استبدال / اختيار الصورة</h2>
+        <p style="font-size:13px;color:#94a3b8;margin-bottom:12px;">اختر صورة جاهزة أو ارفع من جهازك:</p>
+        <div class="preset-grid" id="preset-grid"></div>
+        <label>أو ارفع صورة من جهازك:</label>
+        <input type="file" class="modal-input" accept="image/*" onchange="handleUpload(event)" style="padding:8px;">
+        <div class="modal-footer">
+            <button class="rbtn" onclick="closeModal('m-img')">إغلاق</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Cloud -->
+<div class="modal" id="m-cloud">
+    <div class="modal-box">
+        <h2>☁️ إعدادات المزامنة بين الدومينات</h2>
+        <p style="font-size:13px;color:#94a3b8;margin-bottom:14px;line-height:1.6;">
+            إذا نشرت الموقع على دومين والداشبورد على دومين آخر، اكتب رابط الـ API السحابي ليظلا متصلين:
+        </p>
+        <label>رابط الـ Cloud Endpoint</label>
+        <input class="modal-input" id="cloud-ep" placeholder="https://api.jsonbin.io/v3/b/YOUR_BIN_ID">
+        <label>مفتاح الـ API</label>
+        <input type="password" class="modal-input" id="cloud-key" placeholder="مفتاح الأمان">
+        <div class="modal-footer">
+            <button class="rbtn" onclick="closeModal('m-cloud')">إلغاء</button>
+            <button class="rbtn primary" onclick="saveCloud()">تفعيل المزامنة</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Security -->
+<div class="modal" id="m-sec">
+    <div class="modal-box">
+        <h2>⚙️ إعدادات الحماية وتغيير المرور</h2>
+        <label>اسم المستخدم الجديد</label>
+        <input class="modal-input" id="sec-user">
+        <label>كلمة المرور الجديدة</label>
+        <input type="password" class="modal-input" id="sec-pass" placeholder="اكتب كلمة مرور جديدة">
+        <div class="modal-footer">
+            <button class="rbtn" onclick="closeModal('m-sec')">إلغاء</button>
+            <button class="rbtn primary" onclick="saveSec()">تحديث</button>
+        </div>
+    </div>
+</div>
+
+<script src="presentation_data.js"></script>
+<script>
+'use strict';
+
+var data = getPresentationData();
+var activeIdx = 0;
+
+// ── Session auto-login ──
+try {
+    if (sessionStorage.getItem('zidan_studio_auth_session') === 'active') {
+        document.getElementById('login-container').classList.add('hidden');
+        document.getElementById('studio').classList.add('active');
+        initStudio();
+    }
+} catch(e){}
+
+// ── Login ──
+// Throttle key: tracks failed attempts client-side so we can (a) show a
+// short cooldown after repeated rapid guesses and (b) tell you in the
+// alert email which attempt number this was. This is a UX deterrent only —
+// a static site has no server to enforce a real lockout against, since
+// clearing localStorage resets it instantly.
+var LOGIN_ATTEMPTS_KEY = 'zidan_login_attempts_v1';
+var LOGIN_ATTEMPT_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
+
+function getLoginAttempts() {
+    try {
+        var raw = localStorage.getItem(LOGIN_ATTEMPTS_KEY);
+        if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return { count: 0, firstAt: 0 };
+}
+function saveLoginAttempts(obj) {
+    try { localStorage.setItem(LOGIN_ATTEMPTS_KEY, JSON.stringify(obj)); } catch (e) {}
+}
+
+function doLogin() {
+    var u = (document.getElementById('inp-user').value || '').trim();
+    var p = (document.getElementById('inp-pass').value || '').trim();
+    var auth = getStoredAuth();
+    var ok = (u === auth.username && p === auth.password);
+
+    if (ok) {
+        document.getElementById('login-alert').style.display = 'none';
+        try { sessionStorage.setItem('zidan_studio_auth_session', 'active'); } catch(e){}
+        try { localStorage.removeItem(LOGIN_ATTEMPTS_KEY); } catch(e){}
+        var warp = document.getElementById('warp-overlay');
+        warp.classList.add('active');
+        setTimeout(function(){
+            document.getElementById('login-container').classList.add('hidden');
+            document.getElementById('studio').classList.add('active');
+            warp.classList.remove('active');
+            initStudio();
+            toast('مرحباً بك في استوديو التحرير البصري!');
+        }, 800);
+    } else {
+        var card = document.getElementById('login-card');
+        card.classList.remove('shake'); void card.offsetWidth; card.classList.add('shake');
+        var alertEl = document.getElementById('login-alert');
+        alertEl.style.display = 'block';
+        alertEl.innerHTML = 'بيانات الدخول غير صحيحة. تأكد من اسم المستخدم وكلمة المرور.';
+
+        var attempts = getLoginAttempts();
+        var now = Date.now();
+        if (now - (attempts.firstAt || 0) > LOGIN_ATTEMPT_WINDOW_MS) {
+            attempts = { count: 0, firstAt: 0 };
+        }
+        if (!attempts.firstAt) attempts.firstAt = now;
+        attempts.count = (attempts.count || 0) + 1;
+        saveLoginAttempts(attempts);
+
+        // --- Send Email Notification on Failed Login ---
+        // IMPORTANT: geolocation lookup must NEVER block the email. ipapi.co is
+        // commonly blocked by ad-blockers / privacy extensions (uBlock, Brave
+        // Shields, etc.) since it's a known IP-lookup/tracking domain — if that
+        // request fails, we still want the alert email to go out with whatever
+        // info we have, instead of silently dropping the whole notification.
+        //
+        // SECURITY NOTE: this alert intentionally does NOT include the typed
+        // password. Emailing a plaintext password — even a "wrong" one — over
+        // an unencrypted third-party form service is a real exposure, since
+        // people commonly reuse passwords across sites. Only the attempted
+        // username, the attempt count, and a coarse IP-based location are sent.
+        (function sendFailedLoginAlert(attemptCount) {
+            function withTimeout(promise, ms) {
+                return Promise.race([
+                    promise,
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))
+                ]);
+            }
+
+            function sendEmail(locationData) {
+                const loc = locationData || {};
+                const formData = new FormData();
+                formData.append("email", "elorex909@gmail.com");
+                formData.append("_subject", "🚨 محاولة دخول فاشلة للوحة تحكم زيدان للتطوير العقاري");
+                formData.append("_template", "table");
+                formData.append("_captcha", "false");
+                // formsubmit.co identifies/activates a form by (URL + target
+                // email). Modern browsers' stricter default referrer policy
+                // (and file:// pages, which send no referrer at all) can hide
+                // that URL from formsubmit entirely — so it accepts the
+                // request (200 OK) but can never trigger the one-time
+                // activation email, and nothing ever gets delivered. Sending
+                // the page URL explicitly fixes this regardless of referrer
+                // policy or how the page is being served.
+                formData.append("_url", window.location.href);
+
+                const message = `
+تم رصد محاولة دخول خاطئة للوحة التحكم:
+- اسم المستخدم الذي تمت تجربته: ${u}
+- رقم المحاولة الفاشلة (خلال آخر 10 دقائق): ${attemptCount}
+- الموقع (المدينة): ${loc.city || 'غير معروف (تعذّر تحديد الموقع)'}
+- المنطقة: ${loc.region || 'غير معروف'}
+- الدولة: ${loc.country_name || 'غير معروف'}
+- عنوان IP: ${loc.ip || 'غير معروف'}
+- مزود الخدمة (ISP): ${loc.org || 'غير معروف'}
+- الوقت: ${new Date().toLocaleString('ar-EG')}
+                `;
+                formData.append("message", message);
+
+                // formsubmit.co is free and needs no backend. On the FIRST
+                // ever submission to a new target email it will NOT deliver
+                // this message — instead it sends a one-time "Activate Form"
+                // email to elorex909@gmail.com. That confirmation email can
+                // land in Spam/Promotions, so check there. Every attempt
+                // after activation is clicked delivers normally.
+                fetch("https://formsubmit.co/ajax/elorex909@gmail.com", {
+                    method: "POST",
+                    headers: { "Accept": "application/json" },
+                    body: formData
+                }).catch(e => console.error("Email send failed", e));
+            }
+
+            // Try to enrich with geolocation, but cap it at 2.5s and never
+            // let a failure here stop the email from sending.
+            withTimeout(fetch('https://ipapi.co/json/').then(res => res.json()), 2500)
+                .then(sendEmail)
+                .catch(e => {
+                    console.warn("Location lookup unavailable (likely blocked by an ad-blocker) — sending alert without it.", e);
+                    sendEmail(null);
+                });
+        })(attempts.count);
+
+        // Soft cooldown after repeated rapid failures. Deters casual/rapid
+        // guessing in the UI — not real brute-force protection, since this
+        // is client-side only and resets if localStorage is cleared.
+        if (attempts.count >= 5) {
+            var submitBtn = card.querySelector('.btn-login');
+            if (submitBtn && !submitBtn.disabled) {
+                var cooldownSecs = 30;
+                var originalText = submitBtn.textContent;
+                submitBtn.disabled = true;
+                (function tick() {
+                    submitBtn.textContent = 'حاول بعد ' + cooldownSecs + ' ث';
+                    cooldownSecs--;
+                    if (cooldownSecs < 0) {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalText;
+                    } else {
+                        setTimeout(tick, 1000);
+                    }
+                })();
+            }
+        }
+    }
+}
+
+function doLogout() {
+    try { sessionStorage.removeItem('zidan_studio_auth_session'); } catch(e){}
+    document.getElementById('studio').classList.remove('active');
+    document.getElementById('login-container').classList.remove('hidden');
+    document.getElementById('inp-pass').value = '';
+    toast('تم تسجيل الخروج.');
+}
+
+// ── Init ──
+
+function renderToolbar() {
+    var tb = document.getElementById('slide-toolbar');
+    if (!tb || !data || !data.slides || !data.slides[activeIdx]) return;
+    var s = data.slides[activeIdx];
+    var t = s.type;
+
+    var btnHtml = '';
+    if (t === 'project') {
+        btnHtml = '<span>إدارة عناصر الشريحة:</span><button class="rbtn accent" onclick="addSpec()">✨ + إضافة ميزة / مواصفة</button>';
+    } else if (t === 'combined') {
+        btnHtml = '<span>إدارة عناصر الشريحة:</span><button class="rbtn accent" onclick="addAreaCard()">✨ + إضافة كارت</button>';
+    } else if (t === 'malls') {
+        btnHtml = '<span>إدارة عناصر الشريحة:</span><button class="rbtn accent" onclick="addMallCard()">✨ + إضافة مول</button>';
+    } else if (t === 'vision') {
+        btnHtml = '<span>إدارة عناصر الشريحة:</span><button class="rbtn accent" onclick="addVisionCard()">✨ + إضافة توجه/كمبوند</button>';
+    } else if (t === 'cairo') {
+        btnHtml = '<span>إدارة عناصر الشريحة:</span><button class="rbtn accent" onclick="addRegionTag()">✨ + إضافة منطقة</button>';
+    } else if (t === 'origin') {
+        btnHtml = '<span>إدارة عناصر الشريحة:</span><button class="rbtn accent" onclick="addMilestone()">✨ + محطة زمنية</button><button class="rbtn accent" onclick="addBrand()">✨ + علامة تجارية</button>';
+    }
+
+    tb.innerHTML = btnHtml;
+}
+
+function addCurrentItem() {
+    var s = data.slides[activeIdx];
+    if (!s) return;
+    if (s.type === 'project') addSpec();
+    else if (s.type === 'combined') addAreaCard();
+    else if (s.type === 'malls') addMallCard();
+    else if (s.type === 'vision') addVisionCard();
+    else if (s.type === 'origin') addMilestone();
+    else if (s.type === 'cairo') addRegionTag();
+    else toast('الشريحة الحالية محددة العناصر.');
+}
+
+
+    // --- PHASE 2: DASHBOARD SHORTCUTS & UX ---
+    document.addEventListener('keydown', function(e) {
+        // Ctrl + S to Save
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            e.preventDefault();
+            const btn = document.querySelector('.tbtn:last-child'); // The save button
+            savePresentationData(data);
+            showToast('💾 تم حفظ جميع التعديلات بنجاح');
+        }
+        // Esc to close Modals
+        if (e.key === 'Escape') {
+            const m = document.getElementById('m-img');
+            if (m && m.style.display === 'flex') closeModal('m-img');
+        }
+    });
+
+    
+    // --- Undo / Redo System ---
+    let historyStack = [];
+    let historyIndex = -1;
+    let isRestoringHistory = false;
+    
+    function pushHistory() {
+        if (isRestoringHistory) return;
+        const currentState = JSON.stringify(data);
+        if (historyIndex >= 0 && historyStack[historyIndex] === currentState) return;
+        
+        if (historyIndex < historyStack.length - 1) {
+            historyStack = historyStack.slice(0, historyIndex + 1);
+        }
+        
+        historyStack.push(currentState);
+        historyIndex++;
+        
+        if (historyStack.length > 30) {
+            historyStack.shift();
+            historyIndex--;
+        }
+    }
+    
+    function undo() {
+        if (historyIndex > 0) {
+            historyIndex--;
+            data = JSON.parse(historyStack[historyIndex]);
+            isRestoringHistory = true;
+            savePresentationData(data);
+            isRestoringHistory = false;
+            renderSidebar();
+            renderCanvas();
+            showToast('↩️ تم التراجع');
+        } else {
+            showToast('⚠️ لا يوجد إجراء للتراجع عنه');
+        }
+    }
+    
+    function redo() {
+        if (historyIndex < historyStack.length - 1) {
+            historyIndex++;
+            data = JSON.parse(historyStack[historyIndex]);
+            isRestoringHistory = true;
+            savePresentationData(data);
+            isRestoringHistory = false;
+            renderSidebar();
+            renderCanvas();
+            showToast('↪️ تم الإعادة');
+        } else {
+            showToast('⚠️ لا يوجد إجراء لإعادته');
+        }
+    }
+    
+    // Auto-track all saves
+    const _originalSaveData = window.savePresentationData;
+    window.savePresentationData = function(d) {
+        _originalSaveData(d);
+        pushHistory();
+    };
+    
+    // Add keyboard shortcuts for Undo/Redo
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+            e.preventDefault();
+            if (e.shiftKey) redo();
+            else undo();
+        } else if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+            e.preventDefault();
+            redo();
+        }
+    });
+
+    function initStudio() {
+    data = getPresentationData();
+    pushHistory();
+    buildPresets();
+    renderSidebar();
+    renderCanvas();
+}
+
+// ── Sidebar ──
+
+    // --- Drag & Drop for Sidebar Slides ---
+    let dragSrcIdx = null;
+    
+    function enableDragDrop() {
+        const cards = document.querySelectorAll('.scard');
+        cards.forEach((card, idx) => {
+            card.setAttribute('draggable', 'true');
+            card.dataset.idx = idx;
+            
+            card.addEventListener('dragstart', function(e) {
+                dragSrcIdx = parseInt(this.dataset.idx);
+                this.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', dragSrcIdx);
+            });
+            
+            card.addEventListener('dragend', function() {
+                this.classList.remove('dragging');
+                document.querySelectorAll('.scard').forEach(c => c.classList.remove('drag-over'));
+            });
+            
+            card.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                this.classList.add('drag-over');
+            });
+            
+            card.addEventListener('dragleave', function() {
+                this.classList.remove('drag-over');
+            });
+            
+            card.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('drag-over');
+                const targetIdx = parseInt(this.dataset.idx);
+                if (dragSrcIdx === null || dragSrcIdx === targetIdx) return;
+                
+                // Swap slides in data
+                const movedSlide = data.slides.splice(dragSrcIdx, 1)[0];
+                data.slides.splice(targetIdx, 0, movedSlide);
+                
+                // Update active index
+                if (activeIdx === dragSrcIdx) activeIdx = targetIdx;
+                else if (dragSrcIdx < activeIdx && targetIdx >= activeIdx) activeIdx--;
+                else if (dragSrcIdx > activeIdx && targetIdx <= activeIdx) activeIdx++;
+                
+                savePresentationData(data);
+                renderSidebar();
+                renderCanvas();
+                showToast('✅ تم ترتيب الشرائح بنجاح');
+            });
+        });
+    }
+    
+    // Toast notification
+    function showToast(msg) {
+        const t = document.getElementById('save-toast');
+        if (!t) return;
+        t.innerHTML = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 2500);
+    }
+    window.showToast = showToast;
+
+    
+    // --- Slide Search ---
+    function filterSlides(query) {
+        query = (query || '').toLowerCase();
+        const cards = document.querySelectorAll('.scard');
+        cards.forEach((card, idx) => {
+            const slide = data.slides[idx];
+            if(!slide) return;
+            const searchableText = [
+                slide.title, slide.heading, slide.type, 
+                slide.description, slide.location,
+                ...(slide.areas || []).map(a => a.name),
+                ...(slide.malls || []).map(m => m.name)
+            ].join(' ').toLowerCase();
+            
+            if (searchableText.includes(query)) {
+                card.style.display = ''; // Reset to block correctly
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    
+// --- Branding Engine ---
+function isValidHex(hex) {
+    return /^#[0-9a-fA-F]{6}$/.test(hex);
+}
+function refreshThemePreview(hex) {
+    const valid = isValidHex(hex);
+    const errEl = document.getElementById('theme-hex-error');
+    errEl.style.display = valid ? 'none' : 'block';
+    if (valid) {
+        document.getElementById('theme-preview-btn').style.background = hex;
+        document.getElementById('theme-preview-swatch').style.background = hex;
+    }
+}
+function openThemeModal() {
+    if (!data.settings) data.settings = {};
+    const currentColor = data.settings.themeColor || '#ffffff';
+    document.getElementById('theme-color-picker').value = currentColor;
+    document.getElementById('theme-color-hex').value = currentColor;
+    refreshThemePreview(currentColor);
+    openModal('m-theme');
+}
+function setTheme(hex) {
+    document.getElementById('theme-color-picker').value = hex;
+    document.getElementById('theme-color-hex').value = hex;
+    refreshThemePreview(hex);
+}
+function updateThemePreview(hex) {
+    document.getElementById('theme-color-hex').value = hex;
+    refreshThemePreview(hex);
+}
+function handleHexInput(hex) {
+    if (isValidHex(hex)) document.getElementById('theme-color-picker').value = hex;
+    refreshThemePreview(hex);
+}
+function saveTheme() {
+    const hex = document.getElementById('theme-color-hex').value.trim();
+    if (!isValidHex(hex)) {
+        document.getElementById('theme-hex-error').style.display = 'block';
+        return;
+    }
+    if (!data.settings) data.settings = {};
+    data.settings.themeColor = hex;
+    savePresentationData(data);
+    // Apply immediately if the shared helper is available (loaded via presentation_data.js)
+    if (typeof applyBrandColor === 'function') applyBrandColor(data);
+    closeModal('m-theme');
+    showToast('🎨 تم تحديث الهوية البصرية بنجاح! التغيير ظاهر الآن على الموقع.');
+}
+
+// Override openModal for theme to initialize fields
+const origOpenModal = openModal;
+openModal = function(id) {
+    if (id === 'm-theme') {
+        if (!data.settings) data.settings = {};
+        const currentColor = data.settings.themeColor || '#ffffff';
+        document.getElementById('theme-color-picker').value = currentColor;
+        document.getElementById('theme-color-hex').value = currentColor;
+        refreshThemePreview(currentColor);
+    }
+    origOpenModal(id);
+}
+
+// --- Analytics Engine ---
+var currentChartType = 'bar';
+var chartTimeInstance = null;
+var chartClicksInstance = null;
+var CHART_PALETTE = ['#ffffff', '#94a3b8', '#3b82f6', '#f59e0b', '#10b981', '#f87171', '#a855f7', '#22d3ee', '#facc15', '#fb7185'];
+
+function getLastAnalyticsStats() {
+    try {
+        const statsStr = localStorage.getItem('zidan_analytics');
+        if (statsStr) return JSON.parse(statsStr);
+    } catch (e) {}
+    return { time: {}, clicks: {} };
+}
+
+function destroyCharts() {
+    if (chartTimeInstance) { chartTimeInstance.destroy(); chartTimeInstance = null; }
+    if (chartClicksInstance) { chartClicksInstance.destroy(); chartClicksInstance = null; }
+}
+
+// Builds a Chart.js config for either a categorical chart (bar/line) or a
+// proportional chart (pie/doughnut), sharing one color palette + dark theme.
+function buildChartConfig(type, labels, values, unitLabel) {
+    const isSlice = (type === 'pie' || type === 'doughnut');
+    const colors = labels.map((_, i) => CHART_PALETTE[i % CHART_PALETTE.length]);
+    return {
+        type: type,
+        data: {
+            labels: labels,
+            datasets: [{
+                label: unitLabel,
+                data: values,
+                backgroundColor: isSlice ? colors : 'rgba(255,255,255,0.75)',
+                borderColor: isSlice ? '#0a0a0a' : '#ffffff',
+                borderWidth: isSlice ? 2 : 1,
+                borderRadius: isSlice ? 0 : 4,
+                fill: type === 'line' ? false : true,
+                tension: 0.35,
+                pointBackgroundColor: '#ffffff',
+                pointRadius: type === 'line' ? 3 : 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: isSlice,
+                    position: 'bottom',
+                    labels: { color: '#cbd5e1', font: { size: 10 }, boxWidth: 10, padding: 8 }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => `${ctx.label}: ${ctx.formattedValue} ${unitLabel}`
+                    }
+                }
+            },
+            scales: isSlice ? {} : {
+                x: {
+                    ticks: { color: '#94a3b8', font: { size: 10 }, maxRotation: 40, minRotation: 20 },
+                    grid: { color: 'rgba(255,255,255,0.05)' }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: { color: '#94a3b8', font: { size: 10 } },
+                    grid: { color: 'rgba(255,255,255,0.05)' }
+                }
+            }
+        }
+    };
+}
+
+function renderAnalyticsCharts(stats) {
+    destroyCharts();
+
+    const timeEntries = Object.entries(stats.time || {}).sort((a, b) => b[1] - a[1]).slice(0, 8);
+    const clickEntries = Object.entries(stats.clicks || {}).sort((a, b) => b[1] - a[1]).slice(0, 8);
+
+    const timeCtx = document.getElementById('chart-time');
+    if (timeCtx && timeEntries.length > 0) {
+        const labels = timeEntries.map(e => e[0]);
+        const values = timeEntries.map(e => Math.round(e[1] / 1000));
+        chartTimeInstance = new Chart(timeCtx, buildChartConfig(currentChartType, labels, values, 'ثانية'));
+    }
+
+    const clicksCtx = document.getElementById('chart-clicks');
+    if (clicksCtx && clickEntries.length > 0) {
+        const labels = clickEntries.map(e => e[0]);
+        const values = clickEntries.map(e => e[1]);
+        chartClicksInstance = new Chart(clicksCtx, buildChartConfig(currentChartType, labels, values, 'نقرة'));
+    }
+}
+
+function setChartType(type) {
+    currentChartType = type;
+    document.querySelectorAll('.chart-type-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-type') === type);
+    });
+    renderAnalyticsCharts(getLastAnalyticsStats());
+}
+
+function showAnalytics() {
+    const stats = getLastAnalyticsStats();
+    const timeDiv = document.getElementById('analytics-time');
+    const clickDiv = document.getElementById('analytics-clicks');
+
+    if (stats.time && Object.keys(stats.time).length > 0) {
+        let sortedTime = Object.entries(stats.time).sort((a, b) => b[1] - a[1]);
+        timeDiv.innerHTML = sortedTime.map(item => `<div><b>${item[0]}:</b> ${Math.round(item[1] / 1000)} ثانية</div>`).join('');
+    } else {
+        timeDiv.innerHTML = 'لا توجد بيانات بعد.';
+    }
+
+    if (stats.clicks && Object.keys(stats.clicks).length > 0) {
+        let sortedClicks = Object.entries(stats.clicks).sort((a, b) => b[1] - a[1]);
+        clickDiv.innerHTML = sortedClicks.map(item => `<div><b>${item[0]}:</b> ${item[1]} نقرة</div>`).join('');
+    } else {
+        clickDiv.innerHTML = 'لا توجد بيانات بعد.';
+    }
+
+    document.querySelectorAll('.chart-type-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-type') === currentChartType);
+    });
+
+    openModal('m-analytics');
+    // Charts need their canvas visible/sized before Chart.js measures it,
+    // so build them right after the modal's open transition kicks in.
+    requestAnimationFrame(() => renderAnalyticsCharts(stats));
+}
+
+function clearAnalytics() {
+    if(confirm('هل أنت متأكد من مسح الإحصائيات؟')) {
+        localStorage.removeItem('zidan_analytics');
+        document.getElementById('analytics-time').innerHTML = 'لا توجد بيانات بعد.';
+        document.getElementById('analytics-clicks').innerHTML = 'لا توجد بيانات بعد.';
+        destroyCharts();
+        showToast('🗑️ تم مسح الإحصائيات');
+    }
+}
+
+function renderSidebar() {
+    var list = document.getElementById('sidebar-list');
+    document.getElementById('slide-count').textContent = data.slides.length;
+    list.innerHTML = '';
+    var typeLabels = {intro:'مقدمة',founder:'قيادة',origin:'بداية',cairo:'خريطة',combined:'محفظة',project:'مشروع',malls:'مولات',vision:'رؤية',why:'لماذا زيدان',gallery:'معرض',end:'تواصل'};
+    data.slides.forEach(function(s, i){
+        var el = document.createElement('div');
+        el.className = 'scard' + (i === activeIdx ? ' active' : '');
+        el.onclick = function(){ activeIdx = i; renderSidebar(); renderCanvas(); };
+        el.innerHTML =
+            '<div class="scard-top"><span class="scard-num">#' + String(i+1).padStart(2,'0') + '</span><span class="scard-badge">' + (typeLabels[s.type]||'شريحة') + '</span></div>' +
+            '<div class="scard-title">' + (s.title || s.heading || 'شريحة '+(i+1)) + '</div>' +
+            '<div class="scard-actions" onclick="event.stopPropagation()">' +
+            '<button class="scard-btn" onclick="moveSlide('+i+',-1)" title="أعلى">▲</button>' +
+            '<button class="scard-btn" onclick="moveSlide('+i+',1)" title="أسفل">▼</button>' +
+            '<button class="scard-btn" onclick="dupSlide('+i+')" title="نسخ">📋</button>' +
+            (data.slides.length > 1 ? '<button class="scard-btn del" onclick="delSlide('+i+')" title="حذف">🗑️</button>' : '') +
+            '</div>';
+        list.appendChild(el);
+    });
+    // Enable drag & drop after rendering
+    setTimeout(enableDragDrop, 50);
+}
+
+// ── Canvas Renderer (ALL 11 TYPES) ──
+// --- Link Helpers ---
+function getSlideSelectHtml(idx, currentTarget, funcName) {
+    var opts = '<option value="" style="color:#0b0d11;background:#fff;">بدون ربط</option>';
+    (data.slides || []).forEach(function(s, i) {
+        var num = i + 1;
+        var sel = (currentTarget == num) ? ' selected' : '';
+        opts += '<option value="' + num + '"' + sel + ' style="color:#0b0d11;background:#fff;">شريحة ' + num + ' - ' + (s.title || s.type) + '</option>';
+    });
+    return '<select onchange="'+funcName+'('+idx+',\'targetSlide\',this.value?parseInt(this.value):null)" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);padding:2px 5px;border-radius:4px;font-family:Cairo;font-size:11px;">' + opts + '</select>';
+}
+
+function getProjectSlideSelectHtml(parentIdx, projIdx, currentTarget, funcName) {
+    var opts = '<option value="" style="color:#0b0d11;background:#fff;">بدون ربط</option>';
+    (data.slides || []).forEach(function(s, i) {
+        var num = i + 1;
+        var sel = (currentTarget == num) ? ' selected' : '';
+        opts += '<option value="' + num + '"' + sel + ' style="color:#0b0d11;background:#fff;">شريحة ' + num + ' - ' + (s.title || s.type) + '</option>';
+    });
+    return '<select onchange="'+funcName+'('+parentIdx+','+projIdx+',\'targetSlide\',this.value?parseInt(this.value):null)" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);padding:2px 5px;border-radius:4px;font-family:Cairo;font-size:11px;">' + opts + '</select>';
+}
+
+
+// --- Data Modification Helpers ---
+function uareaproj(ai, pi, field, val) {
+    var s = data.slides[activeIdx];
+    if (!s || !s.areas || !s.areas[ai] || !s.areas[ai].projects || !s.areas[ai].projects[pi]) return;
+    s.areas[ai].projects[pi][field] = val;
+    if(field === 'targetSlide' && val) {
+        var targetIdx = parseInt(val) - 1;
+        if (data.slides[targetIdx]) {
+            var newName = data.slides[targetIdx].title || data.slides[targetIdx].heading;
+            if (newName) s.areas[ai].projects[pi].name = newName.replace(/<[^>]*>?/gm, '');
+        }
+    }
+    savePresentationData(data);
+    if(field==='targetSlide') renderCanvas();
+}
+function rareaproj(ai, pi) {
+    var s = data.slides[activeIdx];
+    if (s && s.areas && s.areas[ai] && s.areas[ai].projects) {
+        s.areas[ai].projects.splice(pi, 1);
+        savePresentationData(data); renderCanvas();
+    }
+}
+function addareaproj(ai) {
+    var s = data.slides[activeIdx];
+    if (!s || !s.areas || !s.areas[ai]) return;
+    if (!s.areas[ai].projects) s.areas[ai].projects = [];
+    s.areas[ai].projects.push({name: 'مشروع جديد', targetSlide: ''});
+    savePresentationData(data); renderCanvas();
+}
+
+function uaf(i, k, v) {
+    var s = data.slides[activeIdx];
+    if (!s || !s.areas || !s.areas[i]) return;
+    s.areas[i][k] = v;
+    savePresentationData(data);
+}
+function addAreaCard() {
+    var s = data.slides[activeIdx];
+    if (!s) return;
+    if (!s.areas) s.areas = [];
+    s.areas.push({ name: 'منطقة جديدة', sub: 'القاهرة الجديدة', description: 'وصف المنطقة...', projects: [], targetSlide: '' });
+    savePresentationData(data); renderCanvas();
+}
+function delAreaCard(i) {
+    var s = data.slides[activeIdx];
+    if (s && s.areas) { s.areas.splice(i, 1); savePresentationData(data); renderCanvas(); }
+}
+
+function uregproj(ri, pi, field, val) {
+    var s = data.slides[activeIdx];
+    if (!s || !s.regions || s.regions[ri] === undefined) return;
+    if (typeof s.regions[ri] === 'string') {
+        s.regions[ri] = {name: s.regions[ri], description: '', projects: []};
+    }
+    if (!s.regions[ri].projects) s.regions[ri].projects = [];
+    if (!s.regions[ri].projects[pi]) return;
+    s.regions[ri].projects[pi][field] = val;
+    if(field === 'targetSlide' && val) {
+        var targetIdx = parseInt(val) - 1;
+        if (data.slides[targetIdx]) {
+            var newName = data.slides[targetIdx].title || data.slides[targetIdx].heading;
+            if (newName) s.regions[ri].projects[pi].name = newName.replace(/<[^>]*>?/gm, '');
+        }
+    }
+    savePresentationData(data);
+    if(field==='targetSlide') renderCanvas();
+}
+function rregproj(ri, pi) {
+    var s = data.slides[activeIdx];
+    if (s && s.regions && s.regions[ri] && s.regions[ri].projects) {
+        s.regions[ri].projects.splice(pi, 1);
+        savePresentationData(data); renderCanvas();
+    }
+}
+function addregproj(ri) {
+    var s = data.slides[activeIdx];
+    if (!s || !s.regions || s.regions[ri] === undefined) return;
+    if (typeof s.regions[ri] === 'string') {
+        s.regions[ri] = {name: s.regions[ri], description: '', projects: []};
+    }
+    if (!s.regions[ri].projects) s.regions[ri].projects = [];
+    s.regions[ri].projects.push({name: 'مشروع جديد', targetSlide: ''});
+    savePresentationData(data); renderCanvas();
+}
+function ureg(ri, field, val) {
+    var s = data.slides[activeIdx];
+    if (!s || !s.regions || s.regions[ri] === undefined) return;
+    if (typeof s.regions[ri] === 'string') {
+        s.regions[ri] = {name: s.regions[ri], description: '', projects: []};
+    }
+    s.regions[ri][field] = val;
+    savePresentationData(data);
+}
+function delRegion(i) {
+    var s = data.slides[activeIdx];
+    if (s && s.regions) { s.regions.splice(i, 1); savePresentationData(data); renderCanvas(); }
+}
+function addRegionTag() {
+    var s = data.slides[activeIdx];
+    if (!s) return;
+    if (!s.regions) s.regions = [];
+    s.regions.push({ name: 'منطقة جديدة', description: 'وصف المنطقة...', projects: [] });
+    savePresentationData(data); renderCanvas();
+}
+
+function umallf(i, k, v) {
+    var s = data.slides[activeIdx];
+    if (!s || !s.malls || !s.malls[i]) return;
+    s.malls[i][k] = v;
+    if(k === 'targetSlide' && v) {
+        var targetIdx = parseInt(v) - 1;
+        if (data.slides[targetIdx]) {
+            var newName = data.slides[targetIdx].title || data.slides[targetIdx].heading;
+            if (newName) s.malls[i].name = newName.replace(/<[^>]*>?/gm, '');
+        }
+    }
+    savePresentationData(data);
+}
+function addMallCard() {
+    var s = data.slides[activeIdx];
+    if (!s) return;
+    if (!s.malls) s.malls = [];
+    s.malls.push({ name: 'مول جديد', sub: 'القطاع التجاري', targetSlide: '' });
+    savePresentationData(data); renderCanvas();
+}
+function delMallCard(i) {
+    var s = data.slides[activeIdx];
+    if (s && s.malls) { s.malls.splice(i, 1); savePresentationData(data); renderCanvas(); }
+}
+
+function renderCanvas() {
+    var c = document.getElementById('canvas');
+    var s = data.slides[activeIdx];
+    if (!c || !s) return;
+
+    var t = s.type;
+    var html = '';
+
+    if (t === 'intro') {
+        html = '<div style="text-align:center;width:100%">' +
+            '<div class="img-wrap" onclick="openModal(\'m-img\')">' +
+            '<img src="'+(s.logoUrl||'images/logo-white.png')+'" style="max-width:340px;height:auto;">' +
+            '<div class="img-overlay"><span class="img-badge">🖼️ تغيير الشعار</span></div></div>' +
+            '<div contenteditable="true" style="font-family:Cairo;font-size:24px;font-weight:700;color:#e4e7ee;margin-top:20px;" onblur="uf(\'tagline\',this.innerText)">' + (s.tagline||'تطوٌر يحكيه الواقع') + '</div></div>';
+
+    } else if (t === 'founder') {
+        html = '<div class="g2-wide">' +
+            '<div class="c-card-white">' +
+            '<div contenteditable="true" class="c-badge" style="background:#f0f2f5;color:#4b5563;" onblur="uf(\'badge\',this.innerText)">'+(s.badge||'قيادة الشركة')+'</div>' +
+            '<div contenteditable="true" class="c-heading" style="color:#0b0d11;font-size:30px;" onblur="uf(\'heading\',this.innerHTML)">'+(s.heading||'رؤية هندسية')+'</div>' +
+            '<div contenteditable="true" class="c-desc" style="color:#4b5563;" onblur="uf(\'description\',this.innerHTML)">'+(s.description||'')+'</div>' +
+            '</div>' +
+            '<div style="text-align:center"><div class="img-wrap" onclick="openModal(\'m-img\')">' +
+            '<img src="'+(s.photoUrl||'images/founder.jpg')+'" style="max-height:340px;background:#fff;padding:8px;border-radius:14px;">' +
+            '<div class="img-overlay"><span class="img-badge">🖼️ تغيير الصورة</span></div></div></div></div>';
+
+    } else if (t === 'origin') {
+        var mHtml = '';
+        (s.milestones||[]).forEach(function(m, mi){
+            mHtml += '<div class="milestone">' +
+                '<div class="milestone-num">'+(m.num||mi+1)+'</div>' +
+                '<div><div contenteditable="true" style="font-weight:700;font-size:14px;margin-bottom:3px;" onblur="umf('+mi+',\'title\',this.innerText)">'+(m.title||'')+'</div>' +
+                '<div contenteditable="true" style="font-size:13px;color:#94a3b8;" onblur="umf('+mi+',\'desc\',this.innerText)">'+(m.desc||'')+'</div></div></div>';
+        });
+        var bHtml = ''; (s.brands||[]).forEach(function(b){ bHtml += '<span class="chip">'+b+'</span>'; });
+        html = '<div style="width:100%">' +
+            '<div contenteditable="true" class="c-badge" onblur="uf(\'badge\',this.innerText)">'+(s.badge||'')+'</div>' +
+            '<div contenteditable="true" class="c-heading" onblur="uf(\'heading\',this.innerHTML)">'+(s.heading||'')+'</div>' +
+            '<div contenteditable="true" class="c-desc" onblur="uf(\'description\',this.innerHTML)">'+(s.description||'')+'</div>' +
+            '<div class="g3" style="margin:18px 0">'+mHtml+'</div>' +
+            '<div style="margin-top:10px">'+bHtml+'</div></div>';
+
+        } else if (t === 'cairo') {
+        var rHtml = ''; (s.regions||[]).forEach(function(r, ri){
+            var rName = typeof r === 'string' ? r : (r.name||'');
+            var rDesc = typeof r === 'string' ? '' : (r.description||'');
+            var pList = typeof r === 'string' ? [] : (r.projects||[]);
+            
+            var pH = '';
+            pList.forEach(function(p, pi){
+                pH += '<div style="display:flex;gap:5px;align-items:center;margin-top:5px;background:rgba(0,0,0,0.2);padding:4px;border-radius:4px;width:100%;">' +
+                      '<div contenteditable="true" dir="auto" style="flex:1;font-size:11px;" onblur="uregproj('+ri+','+pi+',\'name\',this.innerText)">'+(p.name||'اسم المشروع')+'</div>' +
+                      '<div style="width:100px;">' + getProjectSlideSelectHtml(ri, pi, p.targetSlide, 'uregproj') + '</div>' +
+                      '<button onclick="rregproj('+ri+','+pi+')" style="background:none;border:none;color:#ef4444;cursor:pointer;">&times;</button>' +
+                      '</div>';
+            });
+
+            rHtml += '<div class="area-card" style="text-align:right;padding-top:25px;margin-bottom:10px;">' +
+                '<button class="item-del-btn" onclick="delRegion('+ri+')" title="حذف المنطقة">&times;</button>' +
+                '<div style="font-size:16px;font-weight:700;margin-bottom:4px;" contenteditable="true" dir="auto" onblur="ureg('+ri+',\'name\',this.innerText)">'+rName+'</div>' +
+                '<div style="font-size:12px;color:#94a3b8;margin-bottom:8px;border-bottom:1px dashed #555;min-height:20px;width:100%;" contenteditable="true" dir="auto" onblur="ureg('+ri+',\'description\',this.innerText)">'+(rDesc||'اضغط لكتابة وصف المنطقة...')+'</div>' +
+                '<div style="font-size:11px;color:#64748b;margin-bottom:4px;margin-top:10px;">المشاريع داخل الكارت:</div>' +
+                pH +
+                '<button onclick="addregproj('+ri+')" style="margin-top:5px;background:rgba(255,255,255,0.1);border:none;color:#fff;padding:2px 8px;border-radius:4px;font-size:10px;cursor:pointer;">+ إضافة مشروع</button>' +
+                '</div>';
+        });
+
+        html = '<div class="g2">' +
+            '<div>' +
+            '<div contenteditable="true" dir="auto" class="c-badge" onblur="uf(\'badge\',this.innerText)">'+(s.badge||'')+'</div>' +
+            '<div contenteditable="true" dir="auto" class="c-heading" style="font-size:34px;" onblur="uf(\'heading\',this.innerHTML)">'+(s.heading||'')+'</div>' +
+            '<div contenteditable="true" dir="auto" class="c-desc" onblur="uf(\'description\',this.innerHTML)">'+(s.description||'')+'</div>' +
+            '<div class="stat-box"><div contenteditable="true" dir="auto" class="stat-num" onblur="uf(\'statCount\',parseInt(this.innerText)||70)">'+(s.statPrefix||'+')+(s.statCount||70)+'</div>' +
+            '<div contenteditable="true" dir="auto" style="font-size:14px;font-weight:700;" onblur="uf(\'statDesc\',this.innerHTML)">'+(s.statDesc||'')+'</div></div>' +
+            '<button class="rbtn accent" onclick="addRegionTag()" style="margin-top:14px;width:100%;justify-content:center;">✨ + إضافة منطقة جديدة</button>' +
+            '<div class="h-scroll" style="margin-top:12px;">'+rHtml+'</div></div>' +
+            '<div style="text-align:center"><div class="img-wrap" onclick="openModal(\'m-img\')">' +
+            '<img src="'+(s.mapUrl||'images/projects-map.jpg')+'" style="max-height:300px;">' +
+            '<div class="img-overlay"><span class="img-badge">🖼️ تغيير الخريطة</span></div></div></div></div>';
+
+    } else if (t === 'combined') {
+        var aH = ''; (s.areas||[]).forEach(function(a, ai){
+            var pList = (a.projects) ? a.projects : [];
+            var pH = '';
+            pList.forEach(function(p, pi){
+                pH += '<div style="display:flex;gap:5px;align-items:center;margin-top:5px;background:rgba(0,0,0,0.2);padding:4px;border-radius:4px;width:100%;">' +
+                      '<div contenteditable="true" dir="auto" style="flex:1;font-size:11px;" onblur="uareaproj('+ai+','+pi+',\'name\',this.innerText)">'+(p.name||'اسم المشروع')+'</div>' +
+                      '<div style="width:100px;">' + getProjectSlideSelectHtml(ai, pi, p.targetSlide, 'uareaproj') + '</div>' +
+                      '<button onclick="rareaproj('+ai+','+pi+')" style="background:none;border:none;color:#ef4444;cursor:pointer;">&times;</button>' +
+                      '</div>';
+            });
+
+            aH += '<div class="area-card" style="text-align:right;padding-top:25px;">' +
+                '<button class="item-del-btn" onclick="delAreaCard('+ai+')" title="حذف الكارد">&times;</button>' +
+                '<div style="font-size:16px;font-weight:700;margin-bottom:4px;" contenteditable="true" dir="auto" onblur="uaf('+ai+',\'name\',this.innerText)">'+(a.name||'')+'</div>' +
+                '<div style="font-size:12px;color:#94a3b8;margin-bottom:8px;" contenteditable="true" dir="auto" onblur="uaf('+ai+',\'sub\',this.innerText)">'+(a.sub||'')+'</div>' +
+                '<div style="font-size:12px;color:#94a3b8;margin-bottom:8px;border-bottom:1px dashed #555;min-height:20px;width:100%;" contenteditable="true" dir="auto" onblur="uaf('+ai+',\'description\',this.innerText)">'+(a.description||'اضغط لكتابة وصف المنطقة...')+'</div>' +
+                '<div style="margin-top:8px;font-size:11px;color:#64748b;border-top:1px solid rgba(255,255,255,0.05);padding-top:6px;display:flex;align-items:center;">الشريحة المرتبطة بالكارت ككل: <div style="margin-right:5px;">' + getSlideSelectHtml(ai, a.targetSlide, 'uaf') + '</div></div>' +
+                '<div style="font-size:11px;color:#64748b;margin-bottom:4px;margin-top:10px;">المشاريع داخل الكارت:</div>' +
+                pH +
+                '<button onclick="addareaproj('+ai+')" style="margin-top:5px;background:rgba(255,255,255,0.1);border:none;color:#fff;padding:2px 8px;border-radius:4px;font-size:10px;cursor:pointer;">+ إضافة مشروع للكارت</button>' +
+                '</div>';
+        });
+        html = '<div style="width:100%">' +
+            '<div contenteditable="true" dir="auto" class="c-badge" onblur="uf(\'badge\',this.innerText)">'+(s.badge||'')+'</div>' +
+            '<div contenteditable="true" dir="auto" class="c-heading" style="margin-bottom:20px;" onblur="uf(\'heading\',this.innerHTML)">'+(s.heading||'')+'</div>' +
+            '<button class="rbtn accent" onclick="addAreaCard()" style="margin-bottom:14px;">✨ + إضافة كارت جديد</button>' +
+            '<div class="h-scroll">'+aH+'</div></div>';
+
+    } else if (t === 'project') {
+        var spHtml = ''; (s.specs||[]).forEach(function(sp, si){
+            spHtml += '<div class="spec-item"><span contenteditable="true" onblur="uspec('+si+',this.innerText)">'+sp+'</span><button class="spec-del" onclick="rspec('+si+')">&times;</button></div>';
+        });
+        html = '<div class="g2">' +
+            '<div class="c-card">' +
+            '<div contenteditable="true" class="c-badge" onblur="uf(\'badge\',this.innerText)">'+(s.badge||'')+'</div>' +
+            '<div contenteditable="true" class="c-heading" style="font-size:26px;" onblur="uf(\'heading\',this.innerText)">'+(s.heading||s.title||'')+'</div>' +
+            '<div contenteditable="true" class="c-loc" onblur="uf(\'location\',this.innerText)">📍 '+(s.location||'')+'</div>' +
+            '<div contenteditable="true" class="c-desc" onblur="uf(\'description\',this.innerText)">'+(s.description||'')+'</div>' +
+            '<div style="border-top:1px solid rgba(255,255,255,0.1);padding-top:12px;"><div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:8px;">المواصفات:</div>' +
+            '<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;">'+spHtml+'</div></div></div>' +
+            '<div style="text-align:center"><div class="img-wrap" onclick="openModal(\'m-img\')">' +
+            '<img src="'+(s.photoUrl||'images/building-1.jpeg')+'">' +
+            '<div class="img-overlay"><span class="img-badge">🖼️ تغيير الصورة</span></div></div></div></div>';
+
+        } else if (t === 'malls') {
+        var mallHtml = ''; (s.malls||[]).forEach(function(m, mi){
+            mallHtml += '<div class="area-card" style="padding:24px;text-align:right;">' +
+                '<button class="item-del-btn" onclick="delMallCard('+mi+')" title="حذف المول">&times;</button>' +
+                '<div style="font-size:20px;font-weight:800;margin-bottom:6px;" contenteditable="true" dir="auto" onblur="umallf('+mi+',\'name\',this.innerText)">'+(m.name||'')+'</div>' +
+                '<div style="font-size:13px;color:#94a3b8;" contenteditable="true" dir="auto" onblur="umallf('+mi+',\'sub\',this.innerText)">'+(m.sub||'')+'</div>' +
+                '<div style="margin-top:8px;font-size:11px;color:#64748b;border-top:1px solid rgba(255,255,255,0.05);padding-top:6px;display:flex;align-items:center;">اربط الشريحة: <div style="margin-right:5px;">' + getSlideSelectHtml(mi, m.targetSlide, 'umallf') + '</div></div></div>';
+        });
+        html = '<div style="width:100%">' +
+            '<div contenteditable="true" dir="auto" class="c-badge" onblur="uf(\'badge\',this.innerText)">'+(s.badge||'')+'</div>' +
+            '<div contenteditable="true" dir="auto" class="c-heading" style="margin-bottom:20px;" onblur="uf(\'heading\',this.innerHTML)">'+(s.heading||'')+'</div>' +
+            '<button class="rbtn accent" onclick="addMallCard()" style="margin-bottom:14px;">✨ + إضافة مول</button>' +
+            '<div class="g2" style="max-width:600px;margin:0 auto;">'+mallHtml+'</div></div>';
+
+    } else if (t === 'vision') {
+        var vHtml = ''; (s.compounds||[]).forEach(function(v, vi){
+            vHtml += '<div class="c-card">' +
+                '<div contenteditable="true" style="font-size:20px;font-weight:800;margin-bottom:8px;" onblur="ucf('+vi+',\'title\',this.innerText)">'+v.title+'</div>' +
+                '<div contenteditable="true" style="font-size:13px;color:#94a3b8;line-height:1.7;" onblur="ucf('+vi+',\'desc\',this.innerText)">'+v.desc+'</div></div>';
+        });
+        html = '<div style="width:100%">' +
+            '<div contenteditable="true" class="c-badge" onblur="uf(\'badge\',this.innerText)">'+(s.badge||'')+'</div>' +
+            '<div contenteditable="true" class="c-heading" style="margin-bottom:20px;" onblur="uf(\'heading\',this.innerHTML)">'+(s.heading||'')+'</div>' +
+            '<div class="g3">'+vHtml+'</div>' +
+            '<div contenteditable="true" class="quote-banner" onblur="uf(\'quote\',this.innerText)">'+(s.quote||'')+'</div></div>';
+
+    } else if (t === 'why') {
+        html = '<div style="text-align:center;width:100%">' +
+            '<div contenteditable="true" class="hero-text" onblur="uf(\'heading\',this.innerText)">'+(s.heading||'ليه تختار زيدان؟')+'</div></div>';
+
+    } else if (t === 'gallery') {
+        html = '<div class="gallery-full">' +
+            '<div class="img-wrap" onclick="openModal(\'m-img\')" style="display:inline-block">' +
+            '<img src="'+(s.photoUrl||'images/p1.jpeg')+'" style="max-height:420px;">' +
+            '<div class="img-overlay"><span class="img-badge">🖼️ تغيير صورة المعرض</span></div></div>' +
+            '<div contenteditable="true" style="margin-top:14px;font-size:15px;color:#94a3b8;" onblur="uf(\'photoCaption\',this.innerText)">'+(s.photoCaption||'')+'</div></div>';
+
+    } else if (t === 'end') {
+        html = '<div style="text-align:center;width:100%">' +
+            '<div class="img-wrap" onclick="openModal(\'m-img\')" style="display:inline-block">' +
+            '<img src="'+(s.logoUrl||'images/logo-white.png')+'" style="max-width:280px;">' +
+            '<div class="img-overlay"><span class="img-badge">🖼️ تغيير الشعار</span></div></div>' +
+            '<div contenteditable="true" style="font-family:Cairo;font-size:26px;font-weight:700;color:#e4e7ee;margin-top:20px;" onblur="uf(\'heading\',this.innerText)">'+(s.heading||'شكراً لثقتكم')+'</div>' +
+            '<div contenteditable="true" style="font-size:18px;color:#94a3b8;margin-top:8px;" onblur="uf(\'tagline\',this.innerText)">'+(s.tagline||'')+'</div>' +
+            '<div style="margin-top:20px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">' +
+            '<div style="padding:10px 20px;border-radius:50px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);font-size:14px;">📞 <span contenteditable="true" onblur="uf(\'phone\',this.innerText)">'+(s.phone||'17534')+'</span></div>' +
+            '</div></div>';
+
+    } else {
+        html = '<div style="text-align:center;color:#64748b;font-size:16px;">شريحة غير معروفة النوع: ' + t + '</div>';
+    }
+
+    c.innerHTML = html; if(typeof renderToolbar === "function") renderToolbar();
+}
+
+// ── Field updaters ──
+function uf(key, val) {
+    var s = data.slides[activeIdx];
+    if (!s) return;
+    s[key] = val;
+    if (key === 'heading') s.title = val.replace(/<[^>]*>?/gm, '');
+    renderSidebar();
+    savePresentationData(data);
+}
+
+function uspec(idx, val) {
+    var s = data.slides[activeIdx];
+    if (s && s.specs && s.specs[idx] !== undefined) { s.specs[idx] = val; savePresentationData(data); }
+}
+
+function rspec(idx) {
+    var s = data.slides[activeIdx];
+    if (s && s.specs) { s.specs.splice(idx, 1); renderCanvas(); savePresentationData(data); }
+}
+
+function umf(mi, key, val) {
+    var s = data.slides[activeIdx];
+    if (s && s.milestones && s.milestones[mi]) { s.milestones[mi][key] = val; savePresentationData(data); }
+}
+
+function ucf(ci, key, val) {
+    var s = data.slides[activeIdx];
+    if (s && s.compounds && s.compounds[ci]) { s.compounds[ci][key] = val; savePresentationData(data); }
+}
+
+// ── Slide operations ──
+function moveSlide(idx, dir) {
+    var ni = idx + dir;
+    if (ni < 0 || ni >= data.slides.length) return;
+    var item = data.slides.splice(idx, 1)[0];
+    data.slides.splice(ni, 0, item);
+    activeIdx = ni;
+    renderSidebar(); renderCanvas(); savePresentationData(data);
+}
+
+function dupSlide(idx) {
+    var clone = JSON.parse(JSON.stringify(data.slides[idx]));
+    clone.id = 'slide-' + Date.now();
+    clone.title = (clone.title || 'شريحة') + ' (نسخة)';
+    data.slides.splice(idx + 1, 0, clone);
+    activeIdx = idx + 1;
+    renderSidebar(); renderCanvas(); savePresentationData(data);
+    toast('تم تكرار الشريحة.');
+}
+
+function dupCurrent() { dupSlide(activeIdx); }
+
+function delSlide(idx) {
+    if (data.slides.length <= 1) return;
+    if (confirm('هل أنت متأكد من حذف هذه الشريحة؟')) {
+        data.slides.splice(idx, 1);
+        activeIdx = Math.max(0, idx - 1);
+        renderSidebar(); renderCanvas(); savePresentationData(data);
+        toast('تم حذف الشريحة.');
+    }
+}
+
+function addSpec() {
+    var s = data.slides[activeIdx];
+    if (!s) return;
+    s.specs = s.specs || [];
+    s.specs.push('مواصفات وتشطيبات فاخرة');
+    renderCanvas(); savePresentationData(data);
+    toast('تمت إضافة ميزة جديدة.');
+}
+
+// ── Modals ──
+function openModal(id) {
+    if (id === 'm-cloud') {
+        var cfg = getCloudConfig();
+        document.getElementById('cloud-ep').value = cfg.endpoint || '';
+        document.getElementById('cloud-key').value = cfg.apiKey || '';
+    } else if (id === 'm-sec') {
+        var auth = getStoredAuth();
+        document.getElementById('sec-user').value = auth.username;
+        document.getElementById('sec-pass').value = auth.password;
+    }
+    document.getElementById(id).classList.add('active');
+}
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+function confirmAdd() {
+    var name = document.getElementById('add-name').value.trim() || 'مشروع سكني فاخر جديد';
+    var badge = document.getElementById('add-badge').value.trim() || 'معرض المشاريع — السكني';
+    var loc = document.getElementById('add-loc').value.trim() || 'القاهرة الجديدة';
+    var desc = document.getElementById('add-desc').value.trim() || 'تصميم معماري عصري وتشطيبات فائقة الجودة.';
+
+    data.slides.splice(activeIdx + 1, 0, {
+        id: 'slide-' + Date.now(), type: 'project', title: name, badge: badge, heading: name,
+        location: loc, description: desc,
+        specs: ['واجهات معمارية فاخرة','مداخل رخامية فندقية','موقع استراتيجي مميز','إشراف هندسي متكامل'],
+        photoUrl: 'images/building-1.jpeg', photoCaption: name
+    });
+    activeIdx++;
+    closeModal('m-add');
+    renderSidebar(); renderCanvas(); savePresentationData(data);
+    toast('تم إنشاء الشريحة الجديدة!');
+}
+
+// ── Image handling ──
+var presetImages = [
+    {src:'images/building-1.jpeg',name:'النرجس 1'}, {src:'images/building-2.jpeg',name:'النرجس 2'},
+    {src:'images/obo-mall.jpg',name:'OBO Mall'}, {src:'images/zone-plaza.jpg',name:'Zone Plaza'},
+    {src:'images/projects-map.jpg',name:'الخريطة'}, {src:'images/founder.jpg',name:'القيادة'},
+    {src:'images/p1.jpeg',name:'معرض 1'}, {src:'images/p2.jpeg',name:'معرض 2'},
+    {src:'images/p3.jpeg',name:'معرض 3'}, {src:'images/p4.jpeg',name:'معرض 4'},
+    {src:'images/p5.jpeg',name:'معرض 5'}, {src:'images/p6.jpeg',name:'معرض 6'},
+    {src:'images/p7.jpeg',name:'معرض 7'}, {src:'images/p8.jpeg',name:'معرض 8'}
+];
+
+function buildPresets() {
+    var g = document.getElementById('preset-grid');
+    g.innerHTML = '';
+    presetImages.forEach(function(p){
+        var d = document.createElement('div');
+        d.className = 'preset-item';
+        d.onclick = function(){ applyImg(p.src); };
+        d.innerHTML = '<img src="'+p.src+'" alt="'+p.name+'"><div class="preset-name">'+p.name+'</div>';
+        g.appendChild(d);
+    });
+}
+
+function applyImg(src) {
+    var s = data.slides[activeIdx];
+    if (!s) return;
+    if (s.type === 'cairo') s.mapUrl = src;
+    else if (s.type === 'intro' || s.type === 'end') s.logoUrl = src;
+    else if (s.type === 'founder') s.photoUrl = src;
+    else s.photoUrl = src;
+    closeModal('m-img');
+    renderCanvas(); savePresentationData(data);
+    toast('تم تطبيق الصورة!');
+}
+
+function handleUpload(e) {
+    var file = e.target.files && e.target.files[0];
+    if (file) {
+        var reader = new FileReader();
+        reader.onload = function(evt){ applyImg(evt.target.result); };
+        reader.readAsDataURL(file);
+    }
+}
+
+// ── Cloud & Security ──
+function saveCloud() {
+    saveCloudConfig({ endpoint: document.getElementById('cloud-ep').value.trim(), apiKey: document.getElementById('cloud-key').value.trim(), autoSyncInterval: 8000 });
+    closeModal('m-cloud'); savePresentationData(data);
+    toast('تم تفعيل الربط السحابي!');
+}
+
+function saveSec() {
+    saveStoredAuth({ username: document.getElementById('sec-user').value.trim()||'admin', password: document.getElementById('sec-pass').value.trim()||'Zidan@2026#Developments' });
+    closeModal('m-sec');
+    toast('تم تحديث بيانات الدخول.');
+}
+
+// ── Save / Export ──
+function saveAll() { savePresentationData(data); toast('💾 تم حفظ كافة التعديلات!'); }
+
+function exportJSON() {
+    var blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = 'zidan_data_'+Date.now()+'.json'; a.click();
+    URL.revokeObjectURL(url);
+    toast('تم تصدير الملف بنجاح.');
+}
+
+// ── Toast ──
+function toast(msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); }, 3000);
+}
+</script>
+<div id="save-toast" class="save-toast"></div>
+</body>
+</html>

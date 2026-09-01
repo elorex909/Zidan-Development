@@ -1,0 +1,3009 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zidan Developments — زيدان للتطوير العقاري</title>
+        <meta name="description" content="زيدان للتطوير العقاري — أكثر من 73 مشروعاً عمرانياً متميزاً في أرقى مواقع القاهرة الجديدة">
+    <meta property="og:title" content="Zidan Developments — زيدان للتطوير العقاري">
+    <meta property="og:description" content="أكثر من 73 مشروعاً عمرانياً متميزاً في أرقى مواقع القاهرة الجديدة. رؤية هندسية تقود النمو والتطوير.">
+    <meta property="og:image" content="images/logo-white.png">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Zidan Developments — زيدان للتطوير العقاري">
+    <meta name="twitter:description" content="أكثر من 73 مشروعاً عمرانياً متميزاً في القاهرة الجديدة">
+    <meta name="twitter:image" content="images/logo-white.png">
+    <meta name="theme-color" content="#000000">
+    <link rel="icon" type="image/png" href="images/logo-white.png">
+    <link rel="apple-touch-icon" href="images/logo-white.png">
+    <link rel="manifest" href="manifest.json">
+    <script src="presentation_data.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        /* ══════════════════════════════════════════════════════
+           DESIGN SYSTEM (Pure Ultra-Luxury Obsidian & Titanium)
+           ══════════════════════════════════════════════════════ */
+        :root {
+            --bg-void:        #000000;
+            --bg-obsidian:    #050608;
+            --bg-onyx:        #0b0d11;
+            --bg-charcoal:    #12151c;
+            --bg-card:        rgba(18, 22, 30, 0.82);
+            --bg-card-hover:  rgba(28, 34, 46, 0.94);
+            
+            --gold:           #ffffff;
+            --gold-light:     #e4e7ee;
+            --gold-pale:      #f5f6fa;
+            --gold-dark:      #9aa1b0;
+            --gold-glow:      rgba(255, 255, 255, 0.16);
+
+            --cream:          #f8f9fc;
+            --text-dark:      #0b0d11;
+            --text-sub:       #4b5563;
+            
+            --border-white:   rgba(255, 255, 255, 0.15);
+            --border-subtle:  rgba(255, 255, 255, 0.08);
+            
+            --radius-sm:      10px;
+            --radius-md:      16px;
+            --radius-lg:      22px;
+            --radius-xl:      30px;
+        }
+
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000000;
+            color: #ffffff;
+            font-family: 'Tajawal', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            user-select: none;
+            cursor: default;
+        }
+
+        /* ══════════════════════════════════════════════════════
+           ARCHITECTURAL GRID BACKGROUND & SPOTLIGHT
+           ══════════════════════════════════════════════════════ */
+        .architectural-grid {
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        #bg-canvas {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.55;
+        }
+
+        #mouse-glow {
+            position: fixed;
+            width: 750px;
+            height: 750px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.045) 0%, rgba(255, 255, 255, 0.01) 40%, transparent 70%);
+            pointer-events: none;
+            z-index: 2;
+            transform: translate(-50%, -50%);
+            transition: opacity 0.5s ease;
+            will-change: left, top;
+        }
+
+        /* ══════════════════════════════════════════════════════
+           PRELOADER
+           ══════════════════════════════════════════════════════ */
+        #preloader {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: radial-gradient(circle at center, #0e1117 0%, #000000 70%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 28px;
+            transition: opacity 0.7s ease, visibility 0.7s;
+        }
+        #preloader.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .loader-logo {
+            width: 210px;
+            opacity: 0.95;
+            filter: drop-shadow(0 0 25px rgba(255, 255, 255, 0.25));
+            animation: pulseLogo 2s ease-in-out infinite alternate;
+        }
+        .loader-bar-wrap {
+            width: 160px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 2px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        .loader-bar {
+            position: absolute;
+            top: 0; left: 0;
+            height: 100%; width: 0%;
+            background: var(--brand-color);
+            box-shadow: 0 0 12px var(--brand-color);
+            border-radius: 2px;
+            transition: width 0.3s ease-out;
+        }
+        @keyframes pulseLogo {
+            0% { transform: scale(0.97); opacity: 0.7; }
+            100% { transform: scale(1.03); opacity: 1; }
+        }
+
+        /* ══════════════════════════════════════════════════════
+           PRESENTATION & SLIDES CONTAINER
+           ═══════════════════════════════════════════════════ */
+        #presentation {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+            perspective: 1200px;
+        }
+
+        .slide {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(0.95) translateY(24px);
+            filter: blur(10px);
+            transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+                        transform 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+                        filter 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+                        visibility 0.75s;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            will-change: transform, opacity, filter;
+        }
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1) translateY(0);
+            filter: blur(0px);
+            z-index: 10;
+        }
+        .slide.exiting {
+            z-index: 5;
+            opacity: 0;
+            transform: scale(1.03) translateY(-18px);
+            filter: blur(8px);
+        }
+
+        /* Watermark */
+        .slide:not(.s-intro)::after {
+            content: '';
+            position: absolute;
+            width: 440px;
+            height: 190px;
+            bottom: 32px;
+            left: 38px;
+            background: url('images/logo-white.png') left bottom/contain no-repeat;
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .s-founder::after,
+        .s-origin::after {
+            background-image: url('images/logo-dark.png') !important;
+            opacity: 0.04 !important;
+        }
+
+        .slide-container {
+            position: relative;
+            z-index: 3;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 60px 50px;
+        }
+
+        /* ══════════════════════════════════════════════════════
+           ANIMATIONS & REVEALS
+           ══════════════════════════════════════════════════════ */
+        [data-anim] {
+            opacity: 0;
+            transform: translateY(35px) scale(0.98);
+            filter: blur(5px);
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+                        transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+                        filter 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: transform, opacity, filter;
+        }
+        .slide.active [data-anim] {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            filter: blur(0px);
+        }
+
+        .d1 { transition-delay: 0.08s; }
+        .d2 { transition-delay: 0.16s; }
+        .d3 { transition-delay: 0.24s; }
+        .d4 { transition-delay: 0.32s; }
+        .d5 { transition-delay: 0.40s; }
+        .d6 { transition-delay: 0.48s; }
+        .d7 { transition-delay: 0.56s; }
+        .d8 { transition-delay: 0.64s; }
+
+        /* Shine Sweep */
+        .shine-sweep {
+            position: absolute;
+            top: 0; left: -100%;
+            width: 60%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.09) 50%, transparent 100%);
+            transform: skewX(-25deg);
+            pointer-events: none;
+            z-index: 5;
+        }
+        .slide.active .shine-sweep {
+            animation: sweepShine 1.5s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards;
+        }
+        @keyframes sweepShine {
+            0% { left: -100%; }
+            100% { left: 200%; }
+        }
+
+        /* ══════════════════════════════════════════════════════
+           TYPOGRAPHY & SHARED ELEMENTS
+           ══════════════════════════════════════════════════════ */
+        .pill-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            padding: 8px 20px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 100px;
+            font-family: 'Cairo', 'Tajawal', sans-serif; letter-spacing: -0.02em;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: #ffffff;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            backdrop-filter: blur(14px);
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        .pill-badge:hover {
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45), 0 0 15px rgba(255, 255, 255, 0.15);
+        }
+        .pill-badge.dark {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.06) 0%, rgba(0, 0, 0, 0.02) 100%);
+            border-color: rgba(0, 0, 0, 0.16);
+            color: #0b0d11;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        .pill-badge.dark:hover {
+            border-color: rgba(0, 0, 0, 0.35);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+        .pill-badge .dot {
+            width: 7px;
+            height: 7px;
+            background: var(--brand-color);
+            border-radius: 50%;
+            box-shadow: 0 0 8px #ffffff, 0 0 14px rgba(255, 255, 255, 0.8);
+            animation: pulseDot 2s ease-in-out infinite alternate;
+        }
+        @keyframes pulseDot {
+            0% { transform: scale(0.9); opacity: 0.8; box-shadow: 0 0 6px #ffffff; }
+            100% { transform: scale(1.25); opacity: 1; box-shadow: 0 0 14px #ffffff, 0 0 22px rgba(255, 255, 255, 0.9); }
+        }
+        .pill-badge.dark .dot {
+            background: #0b0d11;
+            box-shadow: 0 0 6px rgba(0, 0, 0, 0.35);
+            animation: none;
+        }
+
+        .title-hero {
+            font-family: 'Cairo', 'Tajawal', sans-serif; letter-spacing: -0.02em;
+            font-size: 54px;
+            font-weight: 900;
+            line-height: 1.2;
+            color: #ffffff;
+            letter-spacing: -0.5px;
+        }
+        .title-section {
+            font-family: 'Cairo', 'Tajawal', sans-serif; letter-spacing: -0.02em;
+            font-size: 42px;
+            font-weight: 800;
+            line-height: 1.25;
+            color: #ffffff;
+            letter-spacing: -0.5px;
+        }
+        .title-section.on-light {
+            color: var(--text-dark);
+        }
+
+        .gold-line {
+            width: 65px;
+            height: 2px;
+            background: linear-gradient(90deg, #ffffff 0%, rgba(255, 255, 255, 0.1) 100%);
+            margin: 18px 0 22px;
+            border-radius: 2px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+        }
+        .gold-line.center {
+            margin: 18px auto 22px;
+            background: linear-gradient(90deg, transparent 0%, #ffffff 50%, transparent 100%);
+            box-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
+        }
+        .s-founder .gold-line,
+        .s-origin .gold-line {
+            background: linear-gradient(90deg, #0b0d11, transparent);
+            box-shadow: none;
+        }
+        .s-founder .gold-line.center,
+        .s-origin .gold-line.center {
+            background: linear-gradient(90deg, transparent, #0b0d11, transparent);
+            box-shadow: none;
+        }
+
+        .desc-text {
+            font-size: 18px;
+            font-weight: 300;
+            line-height: 1.95;
+            color: rgba(255, 255, 255, 0.88);
+        }
+        .desc-text.on-light {
+            color: var(--text-sub);
+        }
+
+        /* ═══════════════════════════════════════════════════
+           SLIDE 1: INTRO
+           ═══════════════════════════════════════════════════ */
+        .s-intro {
+            background: radial-gradient(circle at center, #151924 0%, #050608 55%, #000000 100%);
+        }
+        .intro-stage {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .intro-glow-circle {
+            position: absolute;
+            width: 520px;
+            height: 520px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 65%);
+            animation: pulseGlow 5s ease-in-out infinite alternate;
+        }
+        .intro-orbit {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+        .intro-orbit.o1 {
+            width: 440px;
+            height: 440px;
+            box-shadow: inset 0 0 25px rgba(255, 255, 255, 0.03);
+            animation: spinSlow 35s linear infinite;
+        }
+        .intro-orbit.o2 {
+            width: 650px;
+            height: 650px;
+            border-style: dashed;
+            opacity: 0.28;
+            animation: spinReverse 50s linear infinite;
+        }
+        @keyframes spinSlow {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes spinReverse {
+            0% { transform: rotate(360deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        .intro-logo-img {
+            width: 450px;
+            max-width: 80vw;
+            height: auto;
+            position: relative;
+            z-index: 5;
+            filter: drop-shadow(0 20px 45px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 35px rgba(255, 255, 255, 0.1));
+            animation: introReveal 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes introReveal {
+            0% { opacity: 0; transform: scale(0.88); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        @keyframes pulseGlow {
+            0% { transform: scale(0.95); opacity: 0.4; }
+            100% { transform: scale(1.15); opacity: 0.85; }
+        }
+
+        .intro-tagline {
+            margin-top: 34px;
+            font-family: 'Cairo', 'Tajawal', sans-serif; letter-spacing: -0.02em;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 6px;
+            color: #ffffff;
+            text-transform: uppercase;
+            opacity: 0.95;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+        }
+
+        .intro-name-ar {
+            margin-top: 18px;
+            font-family: 'Cairo', 'Tajawal', sans-serif; letter-spacing: -0.02em;
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: #ffffff;
+            text-align: center;
+            opacity: 0.97;
+            text-shadow: 0 0 18px rgba(255, 255, 255, 0.35);
+        }
+
+        /* ═══════════════════════════════════════════════════
+           SLIDE 2: FOUNDER (م. رفعت زيدان)
+           ═══════════════════════════════════════════════════ */
+        .s-founder {
+            background: radial-gradient(circle at 60% 40%, #ffffff 0%, #f0f2f7 100%);
+        }
+        .founder-box {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 60px;
+            align-items: center;
+            max-width: 1200px;
+            width: 100%;
+        }
+        .founder-photo-frame {
+            background: var(--brand-color);
+            padding: 0; border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 25px 50px -10px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.08);
+            display: inline-block;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
+            cursor: zoom-in;
+        }
+        .founder-photo-frame:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 35px 65px -12px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.1);
+        }
+        .founder-photo-frame img {
+            max-height: 480px;
+            width: auto;
+            max-width: 100%;
+            object-fit: contain;
+            border-radius: var(--radius-md);
+            display: block;
+        }
+
+        /* ═══════════════════════════════════════════════════
+           SLIDE 3: ORIGIN STORY (من قليوب إلى العبور)
+           ═══════════════════════════════════════════════════ */
+        .s-origin {
+            background: radial-gradient(circle at 50% 30%, #ffffff 0%, #eff2f6 100%);
+        }
+        .origin-wrap {
+            max-width: 1140px;
+            width: 100%;
+            text-align: center;
+        }
+        .milestones-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-top: 36px;
+        }
+        .milestone-item {
+            background: var(--brand-color);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: var(--radius-lg);
+            padding: 32px 24px;
+            box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.03);
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease, border-color 0.35s ease;
+        }
+        .milestone-item:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 0, 0, 0.25);
+            box-shadow: 0 22px 45px -10px rgba(0, 0, 0, 0.12);
+        }
+        .milestone-badge {
+            width: 46px;
+            height: 46px;
+            background: linear-gradient(135deg, #1f232b 0%, #0b0d11 100%);
+            color: #ffffff;
+            font-family: 'Cairo', 'Tajawal', sans-serif; letter-spacing: -0.02em;
+            font-size: 20px;
+            font-weight: 800;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+        }
+        .milestone-item h4 {
+            font-family: 'Cairo', 'Tajawal', sans-serif; letter-spacing: -0.02em;
+            font-size: 19px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+        .milestone-item p {
+            font-size: 14px;
+            color: var(--text-sub);
+            line-height: 1.75;
+        }
+        .trust-brands-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            margin-top: 36px;
+            flex-wrap: wrap;
+        }
+        .brand-chip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 24px;
+            background: var(--brand-color);
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            border-radius: 100px;
+            font-family: 'Cairo', 'Tajawal', sans-serif; letter-spacing: -0.02em;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-dark);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+            transition: all 0.25s ease;
+        }
+        .brand-chip:hover {
+            border-color: rgba(0, 0, 0, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.1);
+        }
+        .brand-chip .star { color: #0b0d11; }
+
+        /* ═══════════════════════════════════════════════════
+           SLIDE 4: NEW CAIRO & MAP
+           ═══════════════════════════════════════════════════ */
+        .s-cairo {
+            background: radial-gradient(circle at 75% 50%, #161a24 0%, #07090c 60%, #000000 100%);
+        }
+        .cairo-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            align-items: center;
+            max-width: 1300px;
+            width: 100%;
+        }
+        .stat-banner {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin: 22px 0;
+            padding: 18px 26px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-right: 4px solid #ffffff;
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            backdrop-filter: blur(14px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        }
+        .stat-num-big {
+            font-family: 'Cairo', 'Tajawal', sans-serif; letter-spacing: -0.02em;
+            font-size: 56px;
+            font-weight: 900;
+            background: linear-gradient(180deg, #ffffff 30%, #a4abbc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+            filter: drop-shadow(0 2px 18px rgba(255, 255, 255, 0.3));
+        }
+        .stat-desc {
+            font-family: 'Cairo', 'Tajawal', sans-serif; letter-spacing: -0.02em;
+            font-size: 18px;
+            font-weight: 700;
+            color: #ffffff;
+            line-height: 1.45;
+        }
+        .regions-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 9px;
+            margin-top: 18px;
+        }
+        .region-tag {
+            padding: 8px 18px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 100px;
+            font-family: 'Cairo', 'Tajawal', sans-serif; letter-spacing: -0.02em;
+            font-size: 13px;
+            font-weight: 600;
+            color: #f5f6fa;
+            backdrop-filter: blur(8px);
+            transition: all 0.25s ease;
+            cursor: pointer;
+        }
+        .region-tag:hover {
+            background: rgba(255, 255, 255, 0.16);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+        }
+        .map-display-frame {
+            background: linear-gradient(145deg, rgba(24, 28, 38, 0.9) 0%, rgba(10, 12, 16, 0.96) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: var(--radius-lg);
+            padding: 0; border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 28px 70px rgba(0, 0, 0, 0.85), 0 0 40px rgba(255, 255, 255, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.18);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(14px);
+            position: relative;
+            overflow: hidden;
+            cursor: zoom-in;
+        }
+        .map-display-frame img {
+            max-height: calc(100vh - 170px);
+            width: auto;
+            max-width: 100%;
+            object-fit: contain;
+            border-radius: var(--radius-sm);
+            display: block;
+        }
+
+        /* ═══════════════════════════════════════════════════
+           SLIDE 5: OUR NEW CAIRO PROJECTS (7 Areas Grid)
+           ═══════════════════════════════════════════════════ */
+        .s-combined {
+            background: radial-gradient(circle at center, #151922 0%, #06070a 65%, #000000 100%);
+        }
+        .combined-wrap {
+            max-width: 1200px;
+            width: 100%;
+            text-align: center;
+        }
+        .portfolio-grid-7 {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 24px;
+            margin-top: 42px;
+            perspective: 1200px;
+        }
+        .portfolio-card-7 {
+            width: calc(25% - 18px);
+            min-width: 240px;
+            background: rgba(20, 20, 22, 0.65);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 16px;
+            padding: 34px 24px 28px;
+            text-align: center;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(16px);
+            cursor: pointer;
+        }
+        .portfolio-card-7::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 100%; height: 3px;
+            background: linear-gradient(90deg, transparent, #ffffff, transparent);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        .portfolio-card-7::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0;
+            width: 100%; height: 50%;
+            background: linear-gradient(to top, rgba(255, 255, 255, 0.03), transparent);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        .portfolio-card-7:hover {
+            transform: translateY(-10px) scale(1.03);
+            border-color: rgba(255, 255, 255, 0.5);
+            background: rgba(30, 30, 32, 0.85);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(255, 255, 255, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+        }
+        .portfolio-card-7:hover::before {
+            opacity: 1;
+        }
+        .portfolio-card-7:hover::after {
+            opacity: 1;
+        }
+        .card-icon-box {
+            width: 58px;
+            height: 58px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 18px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(255, 255, 255, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .portfolio-card-7:hover .card-icon-box {
+            transform: scale(1.12) rotate(5deg);
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5), 0 0 25px rgba(255, 255, 255, 0.08);
+        }
+        .card-icon-box svg {
+            width: 26px;
+            height: 26px;
+            fill: #ffffff;
+            filter: drop-shadow(0 2px 6px rgba(255, 255, 255, 0.15));
+        }
+        .portfolio-card-7 h3 {
+            font-family: 'Cairo', 'Tajawal', sans-serif; letter-spacing: -0.02em;
+            font-size: 20px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 6px;
+            letter-spacing: -0.3px;
+        }
+        .portfolio-card-7 p {
+            font-size: 13.5px;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+        .portfolio-card-7 .card-project-count {
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            font-size: 12px;
+            color: #ffffff;
+            font-weight: 700;
+        }
+
+        /* ═══════════════════════════════════════════════════
+           PROJECT SHOWCASE SLIDES (6, 7, 8, 9)
+           ═══════════════════════════════════════════════════ */
+        .s-project {
+            background: radial-gradient(circle at center, #151922 0%, #06070a 65%, #000000 100%);
+        }
+        .project-showcase-grid {
+            display: grid;
+            grid-template-columns: 1.05fr 1.15fr;
+            gap: 48px;
+            align-items: center;
+            max-width: 1350px;
+            width: 100%;
+        }
+
+        /* Info Card */
+        .project-info-card {
+            background: rgba(20, 20, 22, 0.65);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 42px 38px;
+            box-shadow: 0 30px 65px rgba(0, 0, 0, 0.8), 0 0 40px rgba(255, 255, 255, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.08);
+            position: relative;
+            backdrop-filter: blur(18px);
+            overflow: hidden;
+        }
+        .project-info-card::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 100%; height: 4px;
+            background: linear-gradient(90deg, #ffffff, transparent);
+            border-radius: 20px 20px 0 0;
+        }
+
+        .project-heading {
+            font-family: 'Cairo', 'Tajawal', sans-serif; letter-spacing: -0.02em;
+            font-size: 38px;
+            font-weight: 800;
+            line-height: 1.3;
+            color: #ffffff;
+            margin: 10px 0 14px;
+        }
+        .project-loc-tag {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 17px;
+            font-weight: 600;
+            color: #e4e7ee;
+            margin-bottom: 18px;
+        }
+        .project-loc-tag svg {
+            width: 19px;
+            height: 19px;
+            fill: #ffffff;
+            flex-shrink: 0;
+        }
+        .project-specs-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.14);
+        }
+        .spec-item {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            font-family: 'Cairo', 'Tajawal', sans-serif; letter-spacing: -0.02em;
+            font-size: 14px;
+            font-weight: 500;
+            color: #d8dbe5;
+        }
+        .spec-item .dot {
+            width: 6px;
+            height: 6px;
+            background: var(--brand-color);
+            border-radius: 50%;
+            flex-shrink: 0;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.9);
+        }
+
+        /* Image Frame */
+        .project-image-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .project-frame {
+            background: linear-gradient(145deg, rgba(22, 26, 36, 0.92) 0%, rgba(8, 10, 15, 0.96) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: var(--radius-xl);
+            padding: 13px;
+            box-shadow: 0 32px 75px -15px rgba(0, 0, 0, 0.9), 0 0 45px rgba(255, 255, 255, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(14px);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            cursor: zoom-in;
+        }
+        .project-frame:hover {
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 38px 85px -15px rgba(0, 0, 0, 0.98), 0 0 55px rgba(255, 255, 255, 0.08);
+        }
+        .project-frame img {
+            max-height: calc(100vh - 160px);
+            width: auto;
+            max-width: 100%;
+            object-fit: contain;
+            border-radius: var(--radius-md);
+            display: block;
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .project-frame:hover img {
+            transform: scale(1.02);
+        }
+
+/* ═══════════════════════════════════════════════════
+   GALLERY SLIDES (صور إضافية)
+   ═══════════════════════════════════════════════════ */
+.s-gallery {
+    background: radial-gradient(circle at center, #151922 0%, #06070a 65%, #000000 100%);
+}
+.gallery-wrap {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+}
+.gallery-frame {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    width: min(1150px, 88vw);
+    height: min(680px, 74vh);
+    box-shadow: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: none;
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+    cursor: zoom-in;
+}
+.gallery-frame:hover {
+    border-color: transparent;
+    box-shadow: none;
+}
+.gallery-frame img {
+    max-height: 100%;
+    max-width: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: var(--radius-lg);
+    display: block;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+.gallery-frame:hover img {
+    transform: scale(1.02);
+}
+
+        /* ═══════════════════════════════════════════════════
+           SLIDE 10: COMMERCIAL MALLS (NAMES ONLY)
+           ═══════════════════════════════════════════════════ */
+        .s-malls {
+            background: radial-gradient(circle at center, #151922 0%, #06070a 65%, #000000 100%);
+        }
+        .malls-wrap {
+            max-width: 1050px;
+            width: 100%;
+            text-align: center;
+        }
+        .malls-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 38px;
+            margin-top: 46px;
+        }
+        .mall-card {
+            background: rgba(20, 20, 22, 0.65);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 56px 38px;
+            text-align: center;
+            box-shadow: 0 25px 55px rgba(0, 0, 0, 0.7), 0 0 30px rgba(255, 255, 255, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.08);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(16px);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .mall-card::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 100%; height: 3px;
+            background: linear-gradient(90deg, transparent, #ffffff, transparent);
+            opacity: 0.85;
+        }
+
+        .mall-card:hover {
+            transform: translateY(-7px);
+            border-color: rgba(255, 255, 255, 0.5);
+            background: linear-gradient(145deg, rgba(36, 42, 58, 0.95) 0%, rgba(18, 22, 30, 0.96) 100%);
+            box-shadow: 0 28px 65px rgba(0, 0, 0, 0.85), 0 0 38px rgba(255, 255, 255, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+        }
+        .mall-icon-box {
+            width: 78px;
+            height: 78px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.03) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+            transition: transform 0.35s ease;
+        }
+        .mall-card:hover .mall-icon-box {
+            transform: scale(1.1);
+        }
+        .mall-icon-box svg {
+            width: 36px;
+            height: 36px;
+            fill: #ffffff;
+        }
+        .mall-card h3 {
+            font-family: 'Cairo', 'Tajawal', sans-serif; letter-spacing: -0.02em;
+            font-size: 34px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+        .mall-card p {
+            font-family: 'Cairo', 'Tajawal', sans-serif; letter-spacing: -0.02em;
+            font-size: 19px;
+            font-weight: 600;
+            color: #e4e7ee;
+        }
+
+        /* ═══════════════════════════════════════════════════
+           SLIDE 11: FUTURE VISION
+           ═══════════════════════════════════════════════════ */
+        .s-vision {
+            background: radial-gradient(circle at center, #151922 0%, #06070a 65%, #000000 100%);
+        }
+        .vision-wrap {
+            max-width: 1140px;
+            width: 100%;
+            text-align: center;
+        }
+        .vision-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-top: 38px;
+        }
+        .vision-card {
+            background: rgba(20, 20, 22, 0.65);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 42px 32px;
+            text-align: center;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.08);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(16px);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .vision-card::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 100%; height: 3px;
+            background: linear-gradient(90deg, transparent, #ffffff, transparent);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .vision-card:hover {
+            transform: translateY(-7px);
+            border-color: rgba(255, 255, 255, 0.42);
+            background: linear-gradient(145deg, rgba(36, 42, 58, 0.92) 0%, rgba(18, 22, 30, 0.94) 100%);
+            box-shadow: 0 24px 55px rgba(0, 0, 0, 0.75), 0 0 28px rgba(255, 255, 255, 0.08);
+        }
+        .vision-icon-box {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.03) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease;
+        }
+        .vision-card:hover .vision-icon-box {
+            transform: scale(1.1);
+        }
+        .vision-icon-box svg {
+            width: 30px;
+            height: 30px;
+            fill: #ffffff;
+        }
+        .vision-card h3 {
+            font-family: 'Cairo', 'Tajawal', sans-serif; letter-spacing: -0.02em;
+            font-size: 22px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 12px;
+        }
+        .vision-card p {
+            font-size: 14.5px;
+            color: rgba(255, 255, 255, 0.82);
+            line-height: 1.85;
+        }
+        .vision-quote-banner {
+            margin-top: 38px;
+            padding: 16px 40px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 100px;
+            display: inline-block;
+            backdrop-filter: blur(14px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+            transition: all 0.3s ease;
+        }
+        .vision-quote-banner:hover {
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 14px 35px rgba(0, 0, 0, 0.45), 0 0 22px rgba(255, 255, 255, 0.12);
+        }
+        .vision-quote-banner p {
+            font-family: 'Cairo', 'Tajawal', sans-serif; letter-spacing: -0.02em;
+            font-size: 17px;
+            font-weight: 700;
+            color: #f5f6fa;
+            letter-spacing: 0.4px;
+        }
+
+        /* ═══════════════════════════════════════════════════
+           SLIDE 12: WHY ZIDAN (لماذا تختار زيدان)
+           ═══════════════════════════════════════════════════ */
+        .s-why {
+            background: radial-gradient(circle at center, #151922 0%, #06070a 65%, #000000 100%);
+        }
+        .why-wrap {
+            max-width: 1250px;
+            width: 100%;
+            text-align: center;
+        }
+        .why-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 28px;
+            margin-top: 44px;
+        }
+        .why-card {
+            background: linear-gradient(145deg, rgba(26, 30, 42, 0.78) 0%, rgba(12, 14, 20, 0.85) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: var(--radius-xl);
+            padding: 38px 24px 32px;
+            text-align: center;
+            box-shadow: 0 16px 45px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+            backdrop-filter: blur(16px);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .why-card::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, #ffffff, transparent);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        .why-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(255, 255, 255, 0.5);
+            background: linear-gradient(145deg, rgba(40, 46, 62, 0.92) 0%, rgba(18, 22, 30, 0.94) 100%);
+            box-shadow: 0 28px 60px rgba(0, 0, 0, 0.75), 0 0 30px rgba(255, 255, 255, 0.08);
+        }
+        .why-card:hover::before {
+            opacity: 1;
+        }
+        .why-icon-box {
+            width: 68px;
+            height: 68px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.03) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            transition: transform 0.4s ease;
+        }
+        .why-card:hover .why-icon-box {
+            transform: scale(1.1) rotate(4deg);
+        }
+        .why-icon-box svg {
+            width: 30px;
+            height: 30px;
+            fill: #ffffff;
+        }
+        .why-card h3 {
+            font-family: 'Cairo', 'Tajawal', sans-serif; letter-spacing: -0.02em;
+            font-size: 22px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 12px;
+        }
+        .why-card p {
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.85;
+        }
+
+        /* ═══════════════════════════════════════════════════
+           SLIDE 20: END & INTERACTIVE SOCIAL/PHONE LINKS
+           ═══════════════════════════════════════════════════ */
+        .s-end {
+            background: radial-gradient(circle at center, #151922 0%, #06070a 65%, #000000 100%);
+        }
+        .end-wrap {
+            text-align: center;
+            max-width: 850px;
+        }
+        .end-logo-img {
+            width: 320px;
+            max-width: 70vw;
+            height: auto;
+            margin-bottom: 30px;
+            filter: drop-shadow(0 20px 45px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 30px rgba(255, 255, 255, 0.1));
+        }
+        .contact-pills-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 26px;
+            margin-top: 38px;
+            flex-wrap: wrap;
+        }
+        .contact-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 13px;
+            padding: 15px 36px;
+            background: linear-gradient(145deg, rgba(30, 35, 48, 0.9) 0%, rgba(14, 16, 22, 0.94) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 100px;
+            box-shadow: 0 14px 35px rgba(0, 0, 0, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.18);
+            text-decoration: none;
+            color: #ffffff;
+            cursor: pointer;
+            backdrop-filter: blur(16px);
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .contact-pill:hover {
+            transform: translateY(-4px) scale(1.03);
+            border-color: rgba(255, 255, 255, 0.55);
+            background: linear-gradient(145deg, rgba(46, 54, 70, 0.98) 0%, rgba(22, 26, 36, 0.98) 100%);
+            box-shadow: 0 22px 50px rgba(0, 0, 0, 0.75), 0 0 35px rgba(255, 255, 255, 0.18), inset 0 1px 1px rgba(255, 255, 255, 0.35);
+        }
+        .contact-pill svg {
+            width: 21px;
+            height: 21px;
+            fill: #ffffff;
+            transition: transform 0.3s ease;
+        }
+        .contact-pill:hover svg {
+            transform: scale(1.18);
+        }
+        .contact-pill span {
+            font-family: 'Cairo', 'Tajawal', sans-serif; letter-spacing: -0.02em;
+            font-size: 19px;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+        }
+
+        /* ═══════════════════════════════════════════════════
+           NAVIGATION ARROWS (Aligned to Arabic RTL)
+           Left Arrow = Next (التالي ←) | Right Arrow = Prev (السابق →)
+           ═══════════════════════════════════════════════════ */
+        .nav-arrow {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(20, 24, 32, 0.65);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            backdrop-filter: blur(14px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            cursor: pointer;
+            z-index: 150;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 8px 26px rgba(0, 0, 0, 0.45);
+            opacity: 0.5;
+        }
+        .nav-arrow:hover {
+            opacity: 1;
+            background: rgba(38, 46, 60, 0.9);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.65), 0 0 22px rgba(255, 255, 255, 0.2);
+        }
+        .nav-arrow.next { left: 24px; }
+        .nav-arrow.prev { right: 24px; }
+        .nav-arrow svg { width: 22px; height: 22px; fill: #ffffff; }
+        .nav-arrow.disabled { opacity: 0.1; pointer-events: none; }
+
+        #nav-dock {
+            position: fixed;
+            left: 24px;
+            bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 150;
+            background: rgba(16, 19, 26, 0.7);
+            padding: 8px 16px;
+            border-radius: 100px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            backdrop-filter: blur(16px);
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+        }
+        .dock-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.28);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+        }
+        .dock-dot:hover {
+            background: rgba(255, 255, 255, 0.7);
+            transform: scale(1.3);
+        }
+        .dock-dot.active {
+            width: 24px;
+            border-radius: 100px;
+            background: var(--brand-color);
+            box-shadow: 0 0 12px var(--brand-color);
+        }
+        .dock-dot .dot-tooltip {
+            position: absolute;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(4px);
+            background: rgba(10, 12, 18, 0.96);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            color: #ffffff;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-family: 'Cairo', 'Tajawal', sans-serif; letter-spacing: -0.02em;
+            font-size: 11.5px;
+            font-weight: 700;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
+        }
+        .dock-dot:hover .dot-tooltip {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ═══════════════════════════════════════════════════
+           HUD BAR & KEYBOARD HINTS
+           ═══════════════════════════════════════════════════ */
+        #hud-progress-wrap {
+            position: fixed;
+            bottom: 0; left: 0;
+            width: 100%;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.06);
+            z-index: 100;
+            cursor: pointer;
+        }
+        #hud-progress {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(270deg, #71717a 0%, #ffffff 100%);
+            transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 0 14px rgba(255, 255, 255, 0.8);
+        }
+
+        /* ═══════════════════════════════════════════════════
+           FULLSCREEN IMAGE LIGHTBOX
+           ═══════════════════════════════════════════════════ */
+        #image-lightbox {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.35s ease, visibility 0.35s ease;
+        }
+        #image-lightbox.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .lightbox-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(18px);
+        }
+        .lightbox-content {
+            position: relative;
+            z-index: 2;
+            max-width: 90vw;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transform: scale(0.92);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        #image-lightbox.active .lightbox-content {
+            transform: scale(1);
+        }
+        #lightbox-img {
+            max-width: 100%;
+            max-height: 80vh;
+            object-fit: contain;
+            border-radius: var(--radius-lg);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 35px 90px rgba(0, 0, 0, 0.95), 0 0 45px rgba(255, 255, 255, 0.1);
+        }
+        .lightbox-caption {
+            margin-top: 18px;
+            font-family: 'Cairo', 'Tajawal', sans-serif; letter-spacing: -0.02em;
+            font-size: 19px;
+            font-weight: 700;
+            color: #ffffff;
+            text-align: center;
+        }
+        .lightbox-close {
+            position: absolute;
+            top: -48px;
+            right: 0;
+            width: 38px;
+            height: 38px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            border-radius: 50%;
+            color: #ffffff;
+            font-size: 22px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.25s ease;
+        }
+        .lightbox-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.15);
+        }
+
+        /* إخفاء تسميات النقاط السفلية */
+.dock-dot .dot-tooltip {
+    display: none !important;
+}
+    
+        
+        /* ════════ Subtle Luxury 3D Card Physics ════════ */
+        .portfolio-card-7, .mall-card, .vision-card, .project-info-card,
+        .project-frame, .founder-photo-frame, .map-display-frame,
+        .milestone-item, .gallery-frame {
+            transform-style: preserve-3d !important;
+            will-change: transform !important;
+            perspective: 1200px !important;
+            transition: transform 0.15s ease-out, box-shadow 0.3s ease !important;
+        }
+
+    
+        .region-tag-wrap {
+            position: relative;
+            display: inline-block;
+        }
+        .region-projects-list {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: rgba(15, 17, 23, 0.95);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 8px 0;
+            min-width: 150px;
+            z-index: 100;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+            margin-top: 5px;
+        }
+        .region-tag-wrap.active .region-projects-list {
+            display: block;
+            animation: fadeInDown 0.3s ease;
+        }
+        .region-project-item {
+            padding: 8px 15px;
+            color: #cbd5e1;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: right;
+        }
+        .region-project-item:hover {
+            background: rgba(255,255,255,0.05);
+            color: #ffffff;
+            padding-right: 20px;
+        }
+
+    
+        /* --- PHASE 1: LUXURY UI UPGRADES --- */
+        body, a, button, .portfolio-card-7, .project-info-card, [onclick] { cursor: none !important; }
+        
+        #custom-cursor-dot {
+            position: fixed; width: 8px; height: 8px; background: var(--brand-color); border-radius: 50%;
+            pointer-events: none; z-index: 999999; transform: translate(-50%, -50%);
+            transition: width 0.2s, height 0.2s, background 0.2s, opacity 0.2s;
+            mix-blend-mode: difference;
+        }
+        #custom-cursor-ring {
+            position: fixed; width: 36px; height: 36px; border: 1px solid rgba(255,255,255,0.8); border-radius: 50%;
+            pointer-events: none; z-index: 999998; transform: translate(-50%, -50%);
+            transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), height 0.3s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s, border-color 0.3s;
+            mix-blend-mode: difference;
+        }
+        body.cursor-hover #custom-cursor-dot { opacity: 0; }
+        body.cursor-hover #custom-cursor-ring { 
+            width: 55px; height: 55px; 
+            background: rgba(255,255,255,0.1); 
+            border-color: var(--brand-color); 
+            backdrop-filter: blur(2px); 
+        }
+
+        .ambient-orb {
+            position: fixed; border-radius: 50%; filter: blur(120px); z-index: -1; opacity: 0.6; pointer-events: none;
+            animation: orb-float 25s infinite alternate ease-in-out;
+        }
+        .orb-1 { width: 45vw; height: 45vw; background: var(--brand-orb); top: -10vw; left: -10vw; }
+        .orb-2 { width: 40vw; height: 40vw; background: color-mix(in srgb, var(--brand-color) 2%, transparent); bottom: -10vw; right: -5vw; animation-delay: -5s; }
+        @keyframes orb-float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(8vw, 6vw) scale(1.15); }
+        }
+
+    
+        /* ══════════════════════════════════════════════════════
+           RESPONSIVE DESIGN — ALL DEVICES
+           ══════════════════════════════════════════════════════ */
+        
+        /* ── Large Desktop (1440px+) ── */
+        @media (min-width: 1440px) {
+            .slide-container { padding: 50px 80px 60px; }
+            .portfolio-card-7 { min-width: 260px; }
+        }
+
+        /* ── Tablet Landscape (1024px - 1279px) ── */
+        @media (max-width: 1279px) {
+            .slide-container { padding: 36px 40px 44px; }
+            .founder-box { flex-direction: column; gap: 28px; }
+            .founder-photo-frame { width: 200px; height: 200px; }
+            .portfolio-card-7 { width: calc(33.33% - 16px); min-width: 200px; padding: 26px 18px 22px; }
+            .map-display-frame { width: 90%; }
+            .project-frame { width: 44%; }
+        }
+        
+        /* ── Tablet Portrait (768px - 1023px) ── */
+        @media (max-width: 1023px) {
+            .slide-container { padding: 28px 28px 36px; }
+            .founder-box { flex-direction: column; gap: 24px; text-align: center; }
+            .founder-photo-frame { width: 180px; height: 180px; margin: 0 auto; }
+            .portfolio-card-7 { width: calc(50% - 14px); min-width: 180px; padding: 22px 16px 20px; }
+            .portfolio-card-7 h3 { font-size: 16px; }
+            .portfolio-card-7 p { font-size: 12px; }
+            .map-display-frame { width: 95%; max-height: 320px; }
+            .project-frame { width: 48%; min-height: 260px; }
+            .gallery-frame { width: 85%; max-height: 55vh; }
+            .nav-arrow { width: 36px; height: 36px; }
+            .region-tag { padding: 5px 12px; font-size: 11.5px; }
+            .mall-card, .vision-card { padding: 22px; }
+            .slide:not(.s-intro)::after { width: 300px; height: 130px; }
+            #custom-cursor-dot, #custom-cursor-ring { display: none !important; }
+            body, a, button, .portfolio-card-7, .project-info-card, [onclick] { cursor: auto !important; }
+        }
+        
+        /* ── Mobile Landscape & Large Phones (640px - 767px) ── */
+        @media (max-width: 767px) {
+            .slide-container { padding: 20px 18px 30px; }
+            .founder-box { flex-direction: column; gap: 16px; }
+            .founder-photo-frame { width: 140px; height: 140px; }
+            .portfolio-card-7 { width: 100%; min-width: unset; max-width: 100%; padding: 20px 16px 18px; }
+            .portfolio-card-7 h3 { font-size: 15px; }
+            .map-display-frame { width: 100%; max-height: 260px; border-radius: 14px; }
+            .project-frame { width: 85%; min-height: 240px; }
+            .gallery-frame { width: 92%; max-height: 50vh; }
+            .nav-arrow { width: 32px; height: 32px; }
+            .nav-arrow svg { width: 16px; height: 16px; }
+            .nav-arrow.next { left: 10px; }
+            .nav-arrow.prev { right: 10px; }
+            #hud-progress-wrap { left: 15%; right: 15%; }
+            .region-tag { padding: 4px 10px; font-size: 11px; }
+            .milestone-item { flex-direction: column; text-align: center; gap: 10px; }
+            .mall-card, .vision-card { padding: 18px; }
+            .slide:not(.s-intro)::after { width: 200px; height: 85px; bottom: 16px; left: 16px; }
+            .stat-num { font-size: 54px !important; }
+            .ambient-orb { display: none; }
+        }
+        
+        /* ── Mobile Portrait (max 639px) ── */
+        @media (max-width: 639px) {
+            .slide-container { padding: 16px 14px 24px; }
+            .founder-photo-frame { width: 120px; height: 120px; }
+            .portfolio-card-7 { border-radius: 12px; padding: 18px 14px 16px; }
+            .portfolio-card-7 h3 { font-size: 14px; }
+            .portfolio-card-7 p { font-size: 11px; }
+            .card-icon-box { width: 44px; height: 44px; }
+            .project-frame { width: 92%; min-height: 200px; }
+            .gallery-frame { width: 96%; }
+            .region-tag { font-size: 10.5px; padding: 3px 8px; margin: 2px; }
+            .nav-arrow { width: 28px; height: 28px; }
+            .nav-arrow.next { left: 6px; bottom: 50%; }
+            .nav-arrow.prev { right: 6px; bottom: 50%; }
+            #hud-progress-wrap { left: 10%; right: 10%; bottom: 14px; }
+            .slide:not(.s-intro)::after { width: 140px; height: 60px; bottom: 10px; left: 10px; }
+            .stat-num { font-size: 42px !important; }
+            .spec-grid { grid-template-columns: 1fr !important; }
+        }
+
+        /* ── Small Phones (max 400px) ── */
+        @media (max-width: 400px) {
+            .slide-container { padding: 12px 10px 20px; }
+            .founder-photo-frame { width: 100px; height: 100px; }
+            .portfolio-card-7 { padding: 14px 12px 14px; }
+            .portfolio-card-7 h3 { font-size: 13px; }
+            .region-tag { font-size: 10px; }
+            .nav-arrow { width: 24px; height: 24px; }
+        }
+
+        /* ── Area Modal Responsive ── */
+        @media (max-width: 767px) {
+            #area-modal-content {
+                width: 98% !important; max-width: 98% !important;
+                padding: 24px 16px !important; border-radius: 16px !important;
+                max-height: 92vh !important;
+            }
+        }
+        @media (max-width: 480px) {
+            #area-modal-content {
+                padding: 18px 12px !important; border-radius: 12px !important;
+            }
+        }
+
+        /* ── Landscape phones: reduce vertical padding ── */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .slide-container { padding: 10px 30px 16px; }
+            .founder-photo-frame { width: 100px; height: 100px; }
+            .nav-arrow { bottom: auto; top: 50%; transform: translateY(-50%); }
+            #hud-progress-wrap { bottom: 6px; }
+            .slide:not(.s-intro)::after { display: none; }
+        }
+
+    </style>
+    
+    <style>
+        :root {
+            --brand-color: #ffffff;
+            --brand-glow: color-mix(in srgb, var(--brand-color) 20%, transparent);
+            --brand-orb: color-mix(in srgb, var(--brand-color) 4%, transparent);
+        }
+</style>
+<script>
+    // Apply the accent color saved from the dashboard's "الهوية البصرية"
+    // panel before the page paints, so there's no flash of the default color.
+    if (typeof applyBrandColor === 'function') applyBrandColor();
+</script>
+</head>
+<body>
+
+    <!-- Ambient Orbs -->
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
+
+
+<!-- Architectural Grid & Particles Canvas & Spotlight -->
+<div class="architectural-grid"></div>
+<canvas id="bg-canvas"></canvas>
+<div id="mouse-glow"></div>
+
+<!-- ════════ PRELOADER ════════ -->
+<div id="preloader">
+    <img src="images/logo-white.png" alt="Zidan Developments" class="loader-logo">
+    <div class="loader-bar-wrap"><div class="loader-bar" id="loader-bar-real"></div></div>
+    <div id="loader-percent" style="color:rgba(255,255,255,0.5);font-size:12px;font-weight:600;margin-top:8px;font-family:Cairo,sans-serif;">0%</div>
+</div>
+
+<!-- ════════ PRESENTATION ════════ -->
+<div id="presentation">
+
+    <!-- Navigation Arrows Aligned to RTL:
+         - Left Arrow (left: 24px) = Next (التالي ←)
+         - Right Arrow (right: 24px) = Prev (السابق →)
+    -->
+    <div class="nav-arrow next" id="btnNext" title="التالي (←)">
+        <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+    </div>
+    <div class="nav-arrow prev" id="btnPrev" title="السابق (→)">
+        <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+    </div>
+
+    <!-- Quick Navigation Dock -->
+    <!-- <div id="nav-dock"></div> -->
+
+    <!-- HUD Timeline Scrubber -->
+    <div id="hud-progress-wrap" title="انقر للتنقل"><div id="hud-progress"></div></div>
+
+    <!-- ═══════════════════════════════════════════════════
+         SLIDE 1: INTRO
+         ═══════════════════════════════════════════════════ -->
+    <div class="slide s-intro active" data-index="0" data-title="المقدمة">
+        <div class="slide-container">
+            <div class="intro-stage">
+                <div class="intro-glow-circle"></div>
+                <div class="intro-orbit o1"></div>
+                <div class="intro-orbit o2"></div>
+                <img src="images/logo-white.png" alt="Zidan Developments" class="intro-logo-img">
+                <div class="intro-name-ar">زيدان للتطوير العقاري</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         SLIDE 2: FOUNDER (م. رفعت زيدان)
+         ═══════════════════════════════════════════════════ -->
+    <div class="slide s-founder" data-index="1" data-title="القيادة">
+        <div class="slide-container">
+            <div class="founder-box">
+                <div>
+                    <div class="pill-badge dark d1" data-anim>
+                        <span class="dot"></span> قيادة الشركة
+                    </div>
+                    <h2 class="title-section on-light d2" data-anim>
+                        رؤية هندسية<br>تقود النمو والتطوير
+                    </h2>
+                    <div class="gold-line d3" data-anim></div>
+                   <p class="desc-text on-light d3" data-anim>
+                        رئيس مجلس ادارة <strong style="color:var(--text-dark);font-weight:700;">الشركة</strong> المهندس <strong style="color:var(--text-dark);font-weight:700;">رفعت زيدان</strong>، مهندس مدني ذو خبرة ميدانية عميقة، يقود توجّه الشركة نحو تطوير مشروعات تجمع بين جودة التنفيذ وقوة الموقع.
+                    </p>
+                </div>
+                <div style="text-align:center;" class="d3" data-anim>
+                    <div class="founder-photo-frame" data-zoom="images/founder.jpg" data-caption="المهندس رفعت زيدان — رئيس مجلس الإدارة">
+                        <img src="images/founder.jpg" alt="المهندس رفعت زيدان">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         SLIDE 3: ORIGIN STORY (من قليوب إلى العبور)
+         ═══════════════════════════════════════════════════ -->
+    <div class="slide s-origin" data-index="2" data-title="قصة البداية">
+        <div class="slide-container">
+            <div class="origin-wrap">
+                <div class="pill-badge dark d1" data-anim>
+                    <span class="dot"></span> قصة البداية
+                </div>
+                <h2 class="title-section on-light d2" data-anim>
+                    من قليوب… انطلقت المسيرة نحو الريادة
+                </h2>
+                <div class="gold-line center d3" data-anim></div>
+                <p class="desc-text on-light d3" data-anim style="max-width:850px;margin:0 auto;">
+                    انطلقت قصة زيدان من تطوير أبراج سكنية متميزة في مدينة <strong style="color:var(--text-dark);font-weight:700;">قليوب</strong>، لتضع حجر الأساس لمسيرة عمرانية طموحة. حظيت المشروعات بثقة علامات تجارية بارزة، ما رسّخ مصداقية الشركة في السوق وفتح الباب أمام التوسع نحو كبرى الأسواق العقارية.
+                </p>
+                <div class="milestones-grid">
+                    <div class="milestone-item d4" data-anim>
+                        <div class="milestone-badge">١</div>
+                        <h4>الانطلاقة الأولى</h4>
+                        <p>أبراج سكنية متميزة وفريدة في قلب مدينة قليوب</p>
+                    </div>
+                    <div class="milestone-item d5" data-anim>
+                        <div class="milestone-badge">٢</div>
+                        <h4>ثقة العلامات الكبرى</h4>
+                        <p>رنين وبنك مصر يختاران زيدان </p>
+                    </div>
+                    <div class="milestone-item d6" data-anim>
+                        <div class="milestone-badge">٣</div>
+                        <h4>التوسع إلى العبور</h4>
+                        <p>مشروعات عمارات سكنية في الحي الرابع والحي التاسع</p>
+                    </div>
+                </div>
+                <div class="trust-brands-bar d7" data-anim>
+                    <div class="brand-chip"><span class="star">★</span> رنين</div>
+                    <div class="brand-chip"><span class="star">★</span> بنك مصر</div>
+                    <div class="brand-chip"><span class="star">★</span> الحي الرابع — العبور</div>
+                    <div class="brand-chip"><span class="star">★</span> الحي التاسع — العبور</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         SLIDE 4: NEW CAIRO EXPANSION (خريطة المشاريع)
+         ═══════════════════════════════════════════════════ -->
+    <div class="slide s-cairo" data-index="3" data-title="القاهرة الجديدة">
+        <div class="slide-container">
+            <div class="cairo-layout">
+                <div>
+                    <div class="pill-badge d1" data-anim>
+                        <span class="dot"></span> الانطلاقة الكبرى
+                    </div>
+                    <h2 class="title-hero d2" data-anim>
+                        القاهرة<br><span style="color:#e4e7ee;">الجديدة</span>
+                    </h2>
+                    <div class="gold-line d3" data-anim></div>
+                    <p class="desc-text d3" data-anim>
+                        وسّعت زيدان نطاق عملياتها إلى قلب <strong style="color:#e4e7ee;">القاهرة الجديدة</strong>، لتثبت قدرتها على اختيار مواقع حيوية متنوعة تلبّي أرقى تطلعات السكن والاستثمار.
+                    </p>
+                    <div class="stat-banner d4" data-anim>
+                        <div class="stat-num-big" id="counterProjects">73</div>
+                        <div class="stat-desc">مشروعاً عمرانياً متميزاً<br>في أرقى وأهم المواقع</div>
+                    </div>
+                    <div class="regions-pills d5" data-anim>
+                        <span class="region-tag">الأندلس</span>
+                        <span class="region-tag">جاردينيا هايتس</span>
+                        <span class="region-tag">المستثمرين الجنوبية</span>
+                        <span class="region-tag">اللوتس</span>
+                        <span class="region-tag">النرجس الجديدة</span>
+                        <span class="region-tag">الحي التكميلي</span>
+                        <span class="region-tag">بيت الوطن</span>
+                    </div>
+                </div>
+                <div class="map-display-frame d4" data-anim data-zoom="images/projects-map.jpg" data-caption="خريطة مشاريع زيدان للتطوير العقاري في القاهرة الجديدة">
+                    <div class="shine-sweep"></div>
+                    <img src="images/projects-map.jpg" alt="خريطة مشاريع زيدان في القاهرة الجديدة">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         SLIDE 5: OUR NEW CAIRO PROJECTS (7 Areas Grid)
+         ═══════════════════════════════════════════════════ -->
+    <div class="slide s-combined" data-index="4" data-title="محفظة المشاريع">
+        <div class="slide-container">
+            <div class="combined-wrap">
+                <div class="pill-badge d1" data-anim>
+                    <span class="dot"></span> محفظة المشروعات
+                </div>
+                <h2 class="title-section d2" data-anim>
+                    مشاريعنا في القاهرة الجديدة
+                </h2>
+                <div class="gold-line center d3" data-anim></div>
+                <div class="portfolio-grid-7">
+                    <!-- 1. الأندلس -->
+                    <div class="portfolio-card-7 d4" data-anim>
+                        <div class="shine-sweep"></div>
+                        <div class="card-icon-box">
+                            <svg viewBox="0 0 24 24"><path d="M15 11V5l-3-3-3 3v2H3v14h18V11h-6zm-8 8H5v-2h2v2zm0-4H5v-2h2v2zm0-4H5V9h2v2zm6 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V9h2v2zm0-4h-2V5h2v2zm6 12h-2v-2h2v2zm0-4h-2v-2h2v2z"/></svg>
+                        </div>
+                        <h3>الأندلس</h3>
+                        <p>القاهرة الجديدة</p>
+                    </div>
+                    <!-- 2. جاردينيا هايتس -->
+                    <div class="portfolio-card-7 d4" data-anim>
+                        <div class="shine-sweep"></div>
+                        <div class="card-icon-box">
+                            <svg viewBox="0 0 24 24"><path d="M15 11V5l-3-3-3 3v2H3v14h18V11h-6zm-8 8H5v-2h2v2zm0-4H5v-2h2v2zm0-4H5V9h2v2zm6 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V9h2v2zm0-4h-2V5h2v2zm6 12h-2v-2h2v2zm0-4h-2v-2h2v2z"/></svg>
+                        </div>
+                        <h3>جاردينيا هايتس</h3>
+                        <p>القاهرة الجديدة</p>
+                    </div>
+                    <!-- 3. المستثمرين -->
+                    <div class="portfolio-card-7 d5" data-anim>
+                        <div class="shine-sweep"></div>
+                        <div class="card-icon-box">
+                            <svg viewBox="0 0 24 24"><path d="M15 11V5l-3-3-3 3v2H3v14h18V11h-6zm-8 8H5v-2h2v2zm0-4H5v-2h2v2zm0-4H5V9h2v2zm6 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V9h2v2zm0-4h-2V5h2v2zm6 12h-2v-2h2v2zm0-4h-2v-2h2v2z"/></svg>
+                        </div>
+                        <h3>المستثمرين</h3>
+                        <p>القاهرة الجديدة</p>
+                    </div>
+                    <!-- 4. اللوتس -->
+                    <div class="portfolio-card-7 d5" data-anim>
+                        <div class="shine-sweep"></div>
+                        <div class="card-icon-box">
+                            <svg viewBox="0 0 24 24"><path d="M15 11V5l-3-3-3 3v2H3v14h18V11h-6zm-8 8H5v-2h2v2zm0-4H5v-2h2v2zm0-4H5V9h2v2zm6 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V9h2v2zm0-4h-2V5h2v2zm6 12h-2v-2h2v2zm0-4h-2v-2h2v2z"/></svg>
+                        </div>
+                        <h3>اللوتس</h3>
+                        <p>القاهرة الجديدة</p>
+                    </div>
+                    <!-- 5. بيت الوطن -->
+                    <div class="portfolio-card-7 d6" data-anim>
+                        <div class="shine-sweep"></div>
+                        <div class="card-icon-box">
+                            <svg viewBox="0 0 24 24"><path d="M15 11V5l-3-3-3 3v2H3v14h18V11h-6zm-8 8H5v-2h2v2zm0-4H5v-2h2v2zm0-4H5V9h2v2zm6 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V9h2v2zm0-4h-2V5h2v2zm6 12h-2v-2h2v2zm0-4h-2v-2h2v2z"/></svg>
+                        </div>
+                        <h3>بيت الوطن</h3>
+                        <p>القاهرة الجديدة</p>
+                    </div>
+                    <!-- 6. جنوب السويس -->
+                    <div class="portfolio-card-7 d6" data-anim>
+                        <div class="shine-sweep"></div>
+                        <div class="card-icon-box">
+                            <svg viewBox="0 0 24 24"><path d="M15 11V5l-3-3-3 3v2H3v14h18V11h-6zm-8 8H5v-2h2v2zm0-4H5v-2h2v2zm0-4H5V9h2v2zm6 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V9h2v2zm0-4h-2V5h2v2zm6 12h-2v-2h2v2zm0-4h-2v-2h2v2z"/></svg>
+                        </div>
+                        <h3>جنوب السويس</h3>
+                        <p>القاهرة الجديدة</p>
+                    </div>
+                    <!-- 7. النرجس الجديدة -->
+                    <div class="portfolio-card-7 d7" data-anim>
+                        <div class="shine-sweep"></div>
+                        <div class="card-icon-box">
+                            <svg viewBox="0 0 24 24"><path d="M15 11V5l-3-3-3 3v2H3v14h18V11h-6zm-8 8H5v-2h2v2zm0-4H5v-2h2v2zm0-4H5V9h2v2zm6 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V9h2v2zm0-4h-2V5h2v2zm6 12h-2v-2h2v2zm0-4h-2v-2h2v2z"/></svg>
+                        </div>
+                        <h3>النرجس الجديدة</h3>
+                        <p>القاهرة الجديدة</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         SLIDE 6: PROJECT 1 (مشروع سكني — النرجس الجديدة)
+         ═══════════════════════════════════════════════════ -->
+    <div class="slide s-project" data-index="5" data-title="مشروع النرجس 1">
+        <div class="slide-container">
+            <div class="project-showcase-grid">
+                <div class="project-info-card d2" data-anim>
+                    <div class="shine-sweep"></div>
+                    <div class="pill-badge">
+                        <span class="dot"></span> معرض المشاريع — السكني
+                    </div>
+                    <h2 class="project-heading">
+                        مشروع سكني — النرجس الجديدة
+                    </h2>
+                    <div class="project-loc-tag">
+                        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>
+                        <span>القاهرة الجديدة — النرجس الجديدة</span>
+                    </div>
+                    <p class="desc-text" style="font-size:16.5px;">
+                        تصميم معماري كلاسيكي راقٍ يجسد الفخامة وأعلى معايير الدقة الهندسية، مع واجهات حجرية وتشطيبات فائقة الجودة تضمن الراحة والخصوصية التامة.
+                    </p>
+                    <div class="project-specs-list">
+                        <div class="spec-item"><span class="dot"></span> واجهات حجر هاشمي فاخرة</div>
+                        <div class="spec-item"><span class="dot"></span> مداخل رخامية فندقية</div>
+                        <div class="spec-item"><span class="dot"></span> موقع استراتيجي مميز</div>
+                        <div class="spec-item"><span class="dot"></span> تنفيذ بإشراف هندسي متكامل</div>
+                    </div>
+                </div>
+                <div class="project-image-box d3" data-anim>
+                    <div class="project-frame" data-zoom="images/building-1.jpeg" data-caption="مشروع سكني فاخر — النرجس الجديدة">
+                        <div class="shine-sweep"></div>
+                        <img src="images/building-1.jpeg" alt="مشروع سكني — النرجس الجديدة">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         SLIDE 7: PROJECT 2 (مشروع سكني — النرجس الجديدة)
+         ═══════════════════════════════════════════════════ -->
+    <div class="slide s-project" data-index="6" data-title="مشروع النرجس 2">
+        <div class="slide-container">
+            <div class="project-showcase-grid">
+                <div class="project-info-card d2" data-anim>
+                    <div class="shine-sweep"></div>
+                    <div class="pill-badge">
+                        <span class="dot"></span> معرض المشاريع — السكني
+                    </div>
+                    <h2 class="project-heading">
+                        مشروع سكني — النرجس الجديدة
+                    </h2>
+                    <div class="project-loc-tag">
+                        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>
+                        <span>القاهرة الجديدة — النرجس الجديدة</span>
+                    </div>
+                    <p class="desc-text" style="font-size:16.5px;">
+                        عمارة سكنية فاخرة بتوقيع زيدان للتطوير العقاري، تدمج بين التوزيع الذكي للمساحات والاستغلال الأمثل للإضاءة الطبيعية مع إطلالات مفتوحة ومباشرة.
+                    </p>
+                    <div class="project-specs-list">
+                        <div class="spec-item"><span class="dot"></span> تصميم واجهات بانورامية</div>
+                        <div class="spec-item"><span class="dot"></span> جراجات مجهزة بالكامل</div>
+                        <div class="spec-item"><span class="dot"></span> أعلى درجات الأمان والخصوصية</div>
+                        <div class="spec-item"><span class="dot"></span> تسليم مطابق لأعلى المعايير</div>
+                    </div>
+                </div>
+                <div class="project-image-box d3" data-anim>
+                    <div class="project-frame" data-zoom="images/building-2.jpeg" data-caption="مشروع سكني راقٍ — النرجس الجديدة">
+                        <div class="shine-sweep"></div>
+                        <img src="images/building-2.jpeg" alt="مشروع سكني — النرجس الجديدة">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         SLIDE 8: OBO MALL (العبور - أمام جامعة بنها)
+         ═══════════════════════════════════════════════════ -->
+    <div class="slide s-project" data-index="7" data-title="OBO Mall">
+        <div class="slide-container">
+            <div class="project-showcase-grid">
+                <div class="project-info-card d2" data-anim>
+                    <div class="shine-sweep"></div>
+                    <div class="pill-badge">
+                        <span class="dot"></span> القطاع التجاري والاستثماري
+                    </div>
+                    <h2 class="project-heading">
+                        OBO Mall
+                    </h2>
+                    <div class="project-loc-tag">
+                        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>
+                        <span>مدينة العبور — أمام جامعة بنها مباشرةً</span>
+                    </div>
+                    <p class="desc-text" style="font-size:16.5px;">
+                        وجهة تجارية وإدارية وترفيهية متكاملة تقع في موقع حيوي واستراتيجي أمام جامعة بنها، مستهدفةً الكثافة السكانية والطلابية الضخمة في قلب العبور.
+                    </p>
+                    <div class="project-specs-list">
+                        <div class="spec-item"><span class="dot"></span> واجهات زجاجية عصرية</div>
+                        <div class="spec-item"><span class="dot"></span> وحدات تجارية وإدارية</div>
+                        <div class="spec-item"><span class="dot"></span> أعلى ترافيك يومي متوقع</div>
+                        <div class="spec-item"><span class="dot"></span> مواقف سيارات وخدمات ذكية</div>
+                    </div>
+                </div>
+                <div class="project-image-box d3" data-anim>
+                    <div class="project-frame" data-zoom="images/obo-mall.jpg" data-caption="OBO Mall — مدينة العبور">
+                        <div class="shine-sweep"></div>
+                        <img src="images/obo-mall.jpg" alt="OBO Mall">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         SLIDE 9: ZONE PLAZA MALL (المنطقة الترفيهية)
+         ═══════════════════════════════════════════════════ -->
+    <div class="slide s-project" data-index="8" data-title="Zone Plaza">
+        <div class="slide-container">
+            <div class="project-showcase-grid">
+                <div class="project-info-card d2" data-anim>
+                    <div class="shine-sweep"></div>
+                    <div class="pill-badge">
+                        <span class="dot"></span> القطاع التجاري والترفيهي
+                    </div>
+                    <h2 class="project-heading">
+                        Zone Plaza Mall
+                    </h2>
+                    <div class="project-loc-tag">
+                        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>
+                        <span>المنطقة الترفيهية — وجهة تسوق وترفيه متكاملة</span>
+                    </div>
+                    <p class="desc-text" style="font-size:16.5px;">
+                        مركز تجاري وترفيهي عصري يضم باقة من أشهر العلامات التجارية والمطاعم والكافيهات، ليوفر تجربة تسوق وترفيه استثنائية لكافة العائلات.
+                    </p>
+                    <div class="project-specs-list">
+                        <div class="spec-item"><span class="dot"></span> بلازا ومطاعم مفتوحة</div>
+                        <div class="spec-item"><span class="dot"></span> محلات تجارية راقية</div>
+                        <div class="spec-item"><span class="dot"></span> خدمات ترفيهية متكاملة</div>
+                        <div class="spec-item"><span class="dot"></span> إدارة وتشغيل احترافي</div>
+                    </div>
+                </div>
+                <div class="project-image-box d3" data-anim>
+                    <div class="project-frame" data-zoom="images/zone-plaza.jpg" data-caption="Zone Plaza Mall — المنطقة الترفيهية">
+                        <div class="shine-sweep"></div>
+                        <img src="images/zone-plaza.jpg" alt="Zoom Plaza Mall">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         SLIDE 10: COMMERCIAL MALLS (NAMES ONLY)
+         ═══════════════════════════════════════════════════ -->
+    <div class="slide s-malls" data-index="9" data-title="المشروعات التجارية">
+        <div class="slide-container">
+            <div class="malls-wrap">
+                <div class="pill-badge d1" data-anim>
+                    <span class="dot"></span> القطاع التجاري
+                </div>
+                <h2 class="title-section d2" data-anim>
+                    مشروعات تجارية اخرى
+                </h2>
+                <div class="gold-line center d3" data-anim></div>
+                <div class="malls-grid-2">
+                    <!-- Invest Mall -->
+                    <div class="mall-card d4" data-anim>
+                        <div class="shine-sweep"></div>
+                        <div class="mall-icon-box">
+                            <svg viewBox="0 0 24 24"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg>
+                        </div>
+                        <h3>Invest Mall</h3>
+                        <p>في التجمع</p>
+                    </div>
+                    <!-- مول في الأندلس -->
+                    <div class="mall-card d5" data-anim>
+                        <div class="shine-sweep"></div>
+                        <div class="mall-icon-box">
+                            <svg viewBox="0 0 24 24"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg>
+                        </div>
+                        <h3>مول في الأندلس</h3>
+                        <p>القطاع التجاري</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         SLIDE 11: FUTURE VISION
+         ═══════════════════════════════════════════════════ -->
+    <div class="slide s-vision" data-index="10" data-title="الرؤية المستقبلية">
+        <div class="slide-container">
+            <div class="vision-wrap">
+                <div class="pill-badge d1" data-anim>
+                    <span class="dot"></span> الرؤية المستقبلية
+                </div>
+                <h2 class="title-section d2" data-anim>
+                    التوجهات القادمة:<br><span style="color:#e4e7ee;">كمبوندات في أهم المواقع </span>
+                </h2>
+                <div class="gold-line center d3" data-anim></div>
+                <div class="vision-grid">
+                    <div class="vision-card d4" data-anim>
+                        <div class="vision-icon-box">
+                            <svg viewBox="0 0 24 24"><path d="M1 11v10h6v-5h2v5h6V11L8 6l-7 5zm12 8h-2v-5H5v5H3v-7l5-3.5L13 12v7zM10 3v1.97l2 1.43V5h9v14h-4v2h6V3H10z"/></svg>
+                        </div>
+                        <h3>بيت الوطن</h3>
+                        <p>توسع استراتيجي في مجتمع سكني متكامل يتمتع بطلب قوي ونمو استثماري متواصل</p>
+                    </div>
+                    <div class="vision-card d5" data-anim>
+                        <div class="vision-icon-box">
+                            <svg viewBox="0 0 24 24"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg>
+                        </div>
+                        <h3>التجمع</h3>
+                        <p>تطوير كمبوندات سكنية وتجارية في أرقى وأفخم مناطق التوسع بالقاهرة الجديدة</p>
+                    </div>
+                    <div class="vision-card d6" data-anim>
+                        <div class="vision-icon-box">
+                            <svg viewBox="0 0 24 24"><path d="M15 11V5l-3-3-3 3v2H3v14h18V11h-6zm-8 8H5v-2h2v2zm0-4H5v-2h2v2zm0-4H5V9h2v2zm6 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V9h2v2zm0-4h-2V5h2v2zm6 12h-2v-2h2v2zm0-4h-2v-2h2v2z"/></svg>
+                        </div>
+                        <h3>العبور</h3>
+                        <p>تعميق الحضور وترسيخ المكانة في مدينة أثبتت فيها زيدان ريادتها وثقة عملائها مبكراً</p>
+                    </div>
+                </div>
+                <div class="vision-quote-banner d7" data-anim>
+                    <p>«زيدان للتطوير العقاري: تحدي يصنع انجاز.»</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+     SLIDE 12: WHY ZIDAN (لماذا تختار زيدان)
+     ═══════════════════════════════════════════════════ -->
+<div class="slide s-why" data-index="11" data-title="لماذا تختار زيدان">
+    <div class="slide-container">
+        <div class="why-wrap" style="display:flex;align-items:center;justify-content:center;height:100%;">
+            <h1 class="title-hero" data-anim style="font-size:72px;text-align:center;color:#ffffff;text-shadow:0 0 60px rgba(255,255,255,0.15),0 0 120px rgba(255,255,255,0.05);">
+               ليه تختار زيدان؟
+            </h1>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     SLIDES 13–20: GALLERY (8 صور مُضافة)
+     ═══════════════════════════════════════════════════ -->
+<div class="slide s-gallery" data-index="12" data-title="معرض الصور 1">
+    <div class="slide-container">
+        <div class="gallery-wrap">
+            <div class="gallery-frame" data-zoom="images/p1.jpeg" data-caption="">
+                <div class="shine-sweep"></div>
+                <img src="images/p1.jpeg" alt="معرض الصور 1">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="slide s-gallery" data-index="13" data-title="معرض الصور 2">
+    <div class="slide-container">
+        <div class="gallery-wrap">
+            <div class="gallery-frame" data-zoom="images/p2.jpeg" data-caption="">
+                <div class="shine-sweep"></div>
+                <img src="images/p2.jpeg" alt="معرض الصور 2">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="slide s-gallery" data-index="14" data-title="معرض الصور 3">
+    <div class="slide-container">
+        <div class="gallery-wrap">
+            <div class="gallery-frame" data-zoom="images/p3.jpeg" data-caption="">
+                <div class="shine-sweep"></div>
+                <img src="images/p3.jpeg" alt="معرض الصور 3">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="slide s-gallery" data-index="15" data-title="معرض الصور 4">
+    <div class="slide-container">
+        <div class="gallery-wrap">
+            <div class="gallery-frame" data-zoom="images/p4.jpeg" data-caption="">
+                <div class="shine-sweep"></div>
+                <img src="images/p4.jpeg" alt="معرض الصور 4">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="slide s-gallery" data-index="16" data-title="معرض الصور 5">
+    <div class="slide-container">
+        <div class="gallery-wrap">
+            <div class="gallery-frame" data-zoom="images/p5.jpeg" data-caption="">
+                <div class="shine-sweep"></div>
+                <img src="images/p5.jpeg" alt="معرض الصور 5">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="slide s-gallery" data-index="17" data-title="معرض الصور 6">
+    <div class="slide-container">
+        <div class="gallery-wrap">
+            <div class="gallery-frame" data-zoom="images/p6.jpeg" data-caption="">
+                <div class="shine-sweep"></div>
+                <img src="images/p6.jpeg" alt="معرض الصور 6">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="slide s-gallery" data-index="18" data-title="معرض الصور 7">
+    <div class="slide-container">
+        <div class="gallery-wrap">
+            <div class="gallery-frame" data-zoom="images/p7.jpeg" data-caption="">
+                <div class="shine-sweep"></div>
+                <img src="images/p7.jpeg" alt="معرض الصور 7">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="slide s-gallery" data-index="19" data-title="معرض الصور 8">
+    <div class="slide-container">
+        <div class="gallery-wrap">
+            <div class="gallery-frame" data-zoom="images/p8.jpeg" data-caption="">
+                <div class="shine-sweep"></div>
+                <img src="images/p8.jpeg" alt="معرض الصور 8">
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- ═══════════════════════════════════════════════════
+         SLIDE 21: END & INTERACTIVE SOCIAL/PHONE LINKS
+         ═══════════════════════════════════════════════════ -->
+    <div class="slide s-end" data-index="20" data-title="تواصل معنا">
+        <div class="slide-container">
+            <div class="end-wrap">
+                <img src="images/logo-white.png" alt="Zidan Developments" class="end-logo-img d1" data-anim>
+                <h2 class="title-section d2" data-anim style="font-size:48px;">شكراً لثقتكم واهتمامكم</h2>
+                <p class="desc-text d3" data-anim style="color:#e4e7ee;margin-top:8px;font-size:20px;">
+                    تطوٌر يحكيه الواقع
+                </p>
+                <div class="gold-line center d4" data-anim></div>
+                <div class="contact-pills-bar d5" data-anim>
+                    <!-- Phone 17534 -->
+                    <a href="tel:17534" class="contact-pill" title="اتصل بنا">
+                        <svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                        <span>17534</span>
+                    </a>
+                    <!-- Facebook Link -->
+                    <a href="https://www.facebook.com/share/1G7iKebwG8/" target="_blank" rel="noopener noreferrer" class="contact-pill" title="تابعنا على فيسبوك">
+                        <svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                        <span>Zidan Developments</span>
+                    </a>
+                    <!-- Instagram Link -->
+                    <a href="https://www.instagram.com/zidan_developments?igsi=MTI2N2ZuZjFxejJzZA==" target="_blank" rel="noopener noreferrer" class="contact-pill" title="تابعنا على انستجرام">
+                        <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.264-.07-1.643-.07-4.848 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.98-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                        <span>Zidan Developments</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div><!-- /#presentation -->
+
+<!-- Area Details Modal (Ultra-Professional Obsidian) -->
+<div id="area-modal" style="display:none;position:fixed;inset:0;z-index:99999;font-family:'Cairo', 'Inter', sans-serif;">
+    <div style="position:absolute;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:opacity 0.3s ease;" onclick="document.getElementById('area-modal').style.display='none';"></div>
+    <div id="area-modal-content" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(18, 22, 30, 0.5);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:42px;width:95%;max-width:900px;box-shadow:0 40px 100px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,255,255,0.08);direction:rtl;max-height:90vh;overflow-y:auto;box-sizing:border-box;">
+        
+        <button onclick="document.getElementById('area-modal').style.display='none';" style="position:absolute;top:20px;left:20px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#a1a1aa;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;line-height:0;" onmouseover="this.style.background='rgba(255,255,255,0.1)';this.style.color='#ffffff';" onmouseout="this.style.background='rgba(255,255,255,0.04)';this.style.color='#a1a1aa';">&times;</button>
+        
+        <div style="text-align:center;margin-bottom:24px;">
+            <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);padding:4px 14px;border-radius:20px;margin-bottom:16px;">
+                <span style="width:6px;height:6px;background:#ffffff;border-radius:50%;display:inline-block;box-shadow:0 0 8px rgba(255,255,255,0.8);"></span>
+                <span id="area-modal-badge" style="font-size:11.5px;color:#e4e4e7;font-weight:700;"></span>
+            </div>
+            <h2 id="area-modal-name" style="font-size:32px;color:#ffffff;margin:0 0 6px;font-weight:800;letter-spacing:-0.03em;line-height:1.2;"></h2>
+            <p id="area-modal-sub" style="font-size:14px;color:#a1a1aa;margin:0;font-weight:500;"></p>
+        </div>
+
+        <div id="area-modal-desc-box" style="margin-bottom:28px;">
+            <p id="area-modal-desc" style="font-size:14px;color:#d4d4d8;line-height:1.6;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-right:3px solid #ffffff;padding:16px;border-radius:12px;margin:0;text-align:right;"></p>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.06);padding-bottom:12px;">
+            <h3 style="font-size:15px;font-weight:700;color:#ffffff;margin:0;">المشاريع المتوفرة في المنطقة</h3>
+            <span id="area-modal-count-badge" style="font-size:12px;color:#a1a1aa;font-weight:600;background:rgba(255,255,255,0.05);padding:3px 10px;border-radius:12px;border:1px solid rgba(255,255,255,0.08);"></span>
+        </div>
+
+        <div id="area-modal-projects" style="display:flex;flex-direction:column;gap:10px;"></div>
+    </div>
+</div>
+
+<!-- Fullscreen Image Lightbox Modal -->
+<div id="image-lightbox">
+    <div class="lightbox-backdrop"></div>
+    <div class="lightbox-content">
+        <button class="lightbox-close" id="btnCloseLightbox" title="إغلاق">&times;</button>
+        <img id="lightbox-img" src="" alt="معاينة الصورة">
+        <div id="lightbox-caption" class="lightbox-caption"></div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     JAVASCRIPT CONTROLLER (RTL Native Navigation Engine)
+     ═══════════════════════════════════════════════════ -->
+<script>
+(function() {
+    'use strict';
+
+    // ── Preloader Auto-Dismiss ──
+    function dismissPreloader() {
+        const p = document.getElementById('preloader');
+        if (p) {
+            p.style.opacity = '0';
+            p.style.pointerEvents = 'none';
+            setTimeout(() => { p.style.display = 'none'; }, 350);
+        }
+    }
+    if (document.readyState === 'complete') dismissPreloader();
+    else window.addEventListener('load', dismissPreloader);
+    setTimeout(dismissPreloader, 1000);
+
+    // ── Particle Canvas ──
+    const canvas = document.getElementById('particle-canvas');
+    if (canvas) {
+        const ctx = canvas.getContext('2d');
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', function(){
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        });
+
+        const particles = [];
+        const count = Math.min(Math.floor((width * height) / 18000), 55);
+        for(let i = 0; i < count; i++){
+            particles.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                vx: (Math.random() - 0.5) * 0.35,
+                vy: (Math.random() - 0.5) * 0.35,
+                radius: Math.random() * 1.5 + 0.5,
+                alpha: Math.random() * 0.5 + 0.2
+            });
+        }
+
+        function drawParticles(){
+            ctx.clearRect(0, 0, width, height);
+            for(let i = 0; i < particles.length; i++){
+                const p = particles[i];
+                p.x += p.vx; p.y += p.vy;
+                if(p.x < 0) p.x = width;
+                if(p.x > width) p.x = 0;
+                if(p.y < 0) p.y = height;
+                if(p.y > height) p.y = 0;
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 255, 255, ' + p.alpha * 0.35 + ')';
+                ctx.fill();
+
+                for(let j = i + 1; j < particles.length; j++){
+                    const p2 = particles[j];
+                    const dx = p.x - p2.x;
+                    const dy = p.y - p2.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if(dist < 110){
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.strokeStyle = 'rgba(255, 255, 255, ' + (1 - dist / 110) * 0.08 + ')';
+                        ctx.lineWidth = 0.6;
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(drawParticles);
+        }
+        drawParticles();
+    }
+
+    // ── Mouse Glow Spotlight ──
+    const mouseGlow = document.getElementById('mouse-glow');
+    let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2;
+    let currentX = mouseX, currentY = mouseY;
+
+    window.addEventListener('mousemove', function(e){
+        mouseX = e.clientX; mouseY = e.clientY;
+    });
+
+    function animateMouseGlow(){
+        currentX += (mouseX - currentX) * 0.08;
+        currentY += (mouseY - currentY) * 0.08;
+        if(mouseGlow){
+            mouseGlow.style.left = currentX + 'px';
+            mouseGlow.style.top  = currentY + 'px';
+        }
+        requestAnimationFrame(animateMouseGlow);
+    }
+    animateMouseGlow();
+
+    // ── Dynamic Presentation Engine ──
+    const presentation = document.getElementById('presentation');
+    const lightbox = document.getElementById('image-lightbox');
+    const lbImg = document.getElementById('lightbox-img');
+    const lbCaption = document.getElementById('lightbox-caption');
+    const btnCloseLb = document.getElementById('btnCloseLightbox');
+
+    let slides = [];
+    let TOTAL = 21;
+    let current = 0;
+    let isLocked = false;
+    const DURATION = 650;
+
+    
+    // --- PHASE 1 JS: Cursor ---
+    let cursorInitialized = false;
+    function initAdvancedUI() {
+        if (cursorInitialized) return;
+        cursorInitialized = true;
+        
+        const cursorDot = document.createElement('div'); cursorDot.id = 'custom-cursor-dot';
+        const cursorRing = document.createElement('div'); cursorRing.id = 'custom-cursor-ring';
+        document.body.appendChild(cursorDot); document.body.appendChild(cursorRing);
+
+        let mouseX = window.innerWidth/2, mouseY = window.innerHeight/2;
+        let ringX = mouseX, ringY = mouseY;
+
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX; mouseY = e.clientY;
+            cursorDot.style.left = mouseX + 'px';
+            cursorDot.style.top = mouseY + 'px';
+        });
+
+        function renderCursor() {
+            ringX += (mouseX - ringX) * 0.15;
+            ringY += (mouseY - ringY) * 0.15;
+            cursorRing.style.left = ringX + 'px';
+            cursorRing.style.top = ringY + 'px';
+            requestAnimationFrame(renderCursor);
+        }
+        requestAnimationFrame(renderCursor);
+
+        const interactiveSelectors = 'button, a, .portfolio-card-7, .project-info-card, [onclick], .mall-card, .vision-card, select, input';
+        document.addEventListener('mouseover', (e) => {
+            if(e.target.closest(interactiveSelectors)) document.body.classList.add('cursor-hover');
+        });
+        document.addEventListener('mouseout', (e) => {
+            if(e.target.closest(interactiveSelectors)) document.body.classList.remove('cursor-hover');
+        });
+    }
+
+    
+    // --- Image Preloading with Real Progress ---
+    function preloadAllImages() {
+        if (typeof getPresentationData !== 'function') return Promise.resolve();
+        const data = getPresentationData();
+        if (!data || !data.slides) return Promise.resolve();
+        
+        const urls = new Set();
+        data.slides.forEach(s => {
+            if (s.photoUrl) urls.add(s.photoUrl);
+            if (s.logoUrl) urls.add(s.logoUrl);
+            if (s.mapUrl) urls.add(s.mapUrl);
+            (s.regions || []).forEach(r => {
+                (r.projects || []).forEach(p => { if (p.photoUrl) urls.add(p.photoUrl); });
+            });
+            (s.areas || []).forEach(a => {
+                (a.projects || []).forEach(p => { if (p.photoUrl) urls.add(p.photoUrl); });
+            });
+        });
+        
+        const total = urls.size || 1;
+        let loaded = 0;
+        const bar = document.getElementById('loader-bar-real');
+        const pct = document.getElementById('loader-percent');
+        
+        const promises = [];
+        urls.forEach(url => {
+            const p = new Promise(resolve => {
+                const img = new Image();
+                img.onload = img.onerror = () => {
+                    loaded++;
+                    const percent = Math.round((loaded / total) * 100);
+                    if (bar) bar.style.width = percent + '%';
+                    if (pct) pct.textContent = percent + '%';
+                    resolve();
+                };
+                img.src = url;
+            });
+            promises.push(p);
+        });
+        return Promise.all(promises);
+    }
+
+    
+    // --- Client Analytics Tracker ---
+    const analytics = JSON.parse(localStorage.getItem('zidan_analytics') || '{"time":{}, "clicks":{}}');
+    let slideStartTime = Date.now();
+    let currentSlideTitle = 'مقدمة';
+
+    function saveAnalytics() {
+        localStorage.setItem('zidan_analytics', JSON.stringify(analytics));
+    }
+
+    function trackSlideTime() {
+        const timeSpent = Date.now() - slideStartTime;
+        if (timeSpent > 1000) { // Only track if spent more than 1 second
+            analytics.time[currentSlideTitle] = (analytics.time[currentSlideTitle] || 0) + timeSpent;
+            saveAnalytics();
+        }
+        slideStartTime = Date.now();
+    }
+    
+    // Intercept clicks on projects/areas
+    document.addEventListener('click', function(e) {
+        const projectItem = e.target.closest('.region-project-item');
+        const areaCard = e.target.closest('.portfolio-card-7');
+        const mallCard = e.target.closest('.mall-card');
+        
+        let clickTarget = null;
+        if (projectItem) clickTarget = projectItem.textContent.trim();
+        else if (areaCard) clickTarget = areaCard.querySelector('h3')?.textContent.trim();
+        else if (mallCard) clickTarget = mallCard.querySelector('h3')?.textContent.trim();
+        
+        if (clickTarget) {
+            analytics.clicks[clickTarget] = (analytics.clicks[clickTarget] || 0) + 1;
+            saveAnalytics();
+        }
+    });
+
+    function renderDynamicDeck() {
+        try {
+            if (typeof getPresentationData === 'function' && typeof buildDynamicPresentationHTML === 'function') {
+                const liveData = getPresentationData();
+                if (liveData && liveData.slides && liveData.slides.length > 0) {
+                    const navControls = `
+                        <div class="nav-arrow next" id="btnNext" title="التالي (←)"><svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg></div>
+                        <div class="nav-arrow prev" id="btnPrev" title="السابق (→)"><svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></div>
+                        <div id="hud-progress-wrap" title="انقر للتنقل"><div id="hud-progress"></div></div>
+                    `;
+                    const dynamicSlidesHtml = buildDynamicPresentationHTML(liveData);
+                    if (dynamicSlidesHtml && dynamicSlidesHtml.trim().length > 50) {
+                        presentation.innerHTML = navControls + dynamicSlidesHtml;
+                    }
+                }
+            }
+        } catch(e) {
+            console.warn('Dynamic deck build notice:', e);
+        }
+
+        slides = document.querySelectorAll('.slide');
+        TOTAL = slides.length || 1;
+        if (current >= TOTAL) current = TOTAL - 1;
+        if (slides[current]) slides[current].classList.add('active');
+
+        bindDeckEvents();
+        updateHUD();
+        initAdvancedUI();
+        checkAndRunCounter();
+    }
+
+    function bindDeckEvents() {
+        
+        // ── Soft Subtle 3D Card & Frame Parallax Tilt ──
+        const tiltElements = document.querySelectorAll(
+            '.portfolio-card-7, .mall-card, .vision-card, .project-info-card, ' +
+            '.project-frame, .founder-photo-frame, .map-display-frame, ' +
+            '.milestone-item, .gallery-frame'
+        );
+
+        tiltElements.forEach(function(el) {
+            el.onmousemove = function(e) {
+                const rect = el.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const rotateX = ((y - centerY) / centerY) * -4.5;
+                const rotateY = ((x - centerX) / centerX) * 4.5;
+
+                el.style.transition = 'transform 0.12s ease-out';
+                el.style.transform = 'perspective(1200px) rotateX(' + rotateX.toFixed(2) + 'deg) rotateY(' + rotateY.toFixed(2) + 'deg) translateY(-3.5px) scale3d(1.008, 1.008, 1.008)';
+            };
+
+            el.onmouseleave = function() {
+                el.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
+                el.style.transform = 'perspective(1200px) rotateX(0deg) rotateY(0deg) translateY(0) scale3d(1, 1, 1)';
+            };
+        });
+
+
+        // ── Lightbox Zoom ──
+        const zoomables = document.querySelectorAll('[data-zoom]');
+        zoomables.forEach(function(el){
+            el.onclick = function(e){
+                e.stopPropagation();
+                const src = el.getAttribute('data-zoom');
+                const cap = el.getAttribute('data-caption') || '';
+                if(src && lbImg){
+                    lbImg.src = src;
+                    if(lbCaption) lbCaption.textContent = cap;
+                    if(lightbox) lightbox.classList.add('active');
+                }
+            };
+        });
+
+        // ── Navigation Buttons ──
+        const bNext = document.getElementById('btnNext');
+        const bPrev = document.getElementById('btnPrev');
+        if(bNext) bNext.onclick = function(e){ e.stopPropagation(); nextSlide(); };
+        if(bPrev) bPrev.onclick = function(e){ e.stopPropagation(); prevSlide(); };
+
+        // ── Progress Scrubber ──
+        const pWrap = document.getElementById('hud-progress-wrap');
+        if(pWrap){
+            pWrap.onclick = function(e){
+                e.stopPropagation();
+                const rect = pWrap.getBoundingClientRect();
+                const ratio = (e.clientX - rect.left) / rect.width;
+                const targetIdx = Math.floor(ratio * TOTAL);
+                goToSlide(Math.max(0, Math.min(TOTAL - 1, targetIdx)));
+            };
+        }
+    }
+
+                function openAreaModal(slideIdx, areaIdx) {
+        if (typeof getPresentationData !== 'function') return;
+        const data = getPresentationData();
+        if (!data || !data.slides || !data.slides[slideIdx]) return;
+        const area = data.slides[slideIdx].areas[areaIdx];
+        if (!area) return;
+        
+        document.getElementById('area-modal-badge').textContent = data.slides[slideIdx].badge || 'محفظة المشروعات';
+        document.getElementById('area-modal-name').textContent = area.name || '';
+        document.getElementById('area-modal-sub').textContent = area.sub || 'القاهرة الجديدة';
+        
+        const descBox = document.getElementById('area-modal-desc-box');
+        const descEl = document.getElementById('area-modal-desc');
+        if (area.description && area.description.trim()) {
+            descEl.textContent = area.description;
+            descBox.style.display = 'block';
+        } else {
+            descBox.style.display = 'none';
+        }
+        
+        let phtml = '';
+        const projs = area.projects || [];
+        document.getElementById('area-modal-count-badge').textContent = projs.length + (projs.length === 1 ? ' مشروع' : (projs.length === 2 ? ' مشروعان' : ' مشاريع'));
+        
+        if (projs.length > 0) {
+            phtml = '<div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(250px, 1fr));gap:20px;">';
+            projs.forEach(p => {
+                let hasLink = p.targetSlide && parseInt(p.targetSlide) > 0;
+                let linkedSlide = hasLink && data.slides[parseInt(p.targetSlide) - 1] ? data.slides[parseInt(p.targetSlide) - 1] : null;
+                
+                let pName = p.name || (linkedSlide ? (linkedSlide.heading ? linkedSlide.heading.replace(/<[^>]*>?/gm, '') : linkedSlide.title) : 'مشروع معماري');
+                let pImg = linkedSlide && linkedSlide.photoUrl ? linkedSlide.photoUrl : (p.photoUrl || 'images/building-1.jpeg');
+                let pLoc = linkedSlide && linkedSlide.location ? linkedSlide.location : (area.name + ' — القاهرة الجديدة');
+                
+                let onclick = hasLink ? `onclick="document.getElementById('area-modal').style.display='none'; goToSlide(${parseInt(p.targetSlide)-1});"` : '';
+                let cursor = hasLink ? 'cursor:pointer;' : '';
+                
+                phtml += `
+                <div style="background:rgba(255,255,255,0.03);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.08);border-radius:18px;overflow:hidden;transition:all 0.35s cubic-bezier(0.16,1,0.3,1);${cursor}" ${onclick} onmouseover="this.style.transform='translateY(-6px)';this.style.boxShadow='0 20px 50px rgba(0,0,0,0.6)';this.style.borderColor='rgba(255,255,255,0.18)';" onmouseout="this.style.transform='none';this.style.boxShadow='none';this.style.borderColor='rgba(255,255,255,0.08)';">
+                    <div style="position:relative;width:100%;height:180px;overflow:hidden;">
+                        <img src="${pImg}" alt="${pName}" style="width:100%;height:100%;object-fit:cover;transition:transform 0.5s ease;" onerror="this.src='images/building-1.jpeg'" onmouseover="this.style.transform='scale(1.06)';" onmouseout="this.style.transform='scale(1)';">
+                        ${hasLink ? '<div style="position:absolute;top:10px;left:10px;background:rgba(255,255,255,0.9);backdrop-filter:blur(8px);color:#000;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;">عرض ←</div>' : ''}
+                    </div>
+                    <div style="padding:14px 16px 16px;text-align:right;">
+                        <h4 style="font-size:14.5px;font-weight:700;color:#ffffff;margin:0 0 5px;letter-spacing:-0.01em;line-height:1.3;">${pName}</h4>
+                        <div style="font-size:11.5px;color:#71717a;display:flex;align-items:center;gap:4px;justify-content:flex-end;">📍 ${pLoc}</div>
+                    </div>
+                </div>`;
+            });
+            phtml += '</div>';
+        } else {
+            phtml = `<div style="text-align:center;padding:36px 20px;border:1px dashed rgba(255,255,255,0.08);border-radius:12px;background:rgba(255,255,255,0.01);color:#71717a;font-size:13.5px;font-weight:500;">مشروعات متميزة قيد التطوير والتسليم في هذه المنطقة</div>`;
+        }
+        document.getElementById('area-modal-projects').innerHTML = phtml;
+        
+        document.getElementById('area-modal').style.display = 'block';
+    }
+    window.openAreaModal = openAreaModal;
+
+    function openRegionModal(slideIdx, regionIdx) {
+        if (typeof getPresentationData !== 'function') return;
+        const data = getPresentationData();
+        if (!data || !data.slides || !data.slides[slideIdx]) return;
+        const reg = data.slides[slideIdx].regions[regionIdx];
+        if (!reg) return;
+        
+        const rName = typeof reg === 'string' ? reg : (reg.name || '');
+        const rDesc = typeof reg === 'string' ? '' : (reg.description || '');
+        const projs = typeof reg === 'string' ? [] : (reg.projects || []);
+        
+        document.getElementById('area-modal-badge').textContent = 'القاهرة الجديدة';
+        document.getElementById('area-modal-name').textContent = rName;
+        document.getElementById('area-modal-sub').textContent = 'مواقع ومشاريع زيدان العقارية';
+        
+        const descBox = document.getElementById('area-modal-desc-box');
+        const descEl = document.getElementById('area-modal-desc');
+        if (rDesc && rDesc.trim()) {
+            descEl.textContent = rDesc;
+            descBox.style.display = 'block';
+        } else {
+            descBox.style.display = 'none';
+        }
+        
+        let phtml = '';
+        document.getElementById('area-modal-count-badge').textContent = projs.length + (projs.length === 1 ? ' مشروع' : (projs.length === 2 ? ' مشروعان' : ' مشاريع'));
+        
+        if (projs.length > 0) {
+            phtml = '<div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(250px, 1fr));gap:20px;">';
+            projs.forEach(p => {
+                let hasLink = p.targetSlide && parseInt(p.targetSlide) > 0;
+                let linkedSlide = hasLink && data.slides[parseInt(p.targetSlide) - 1] ? data.slides[parseInt(p.targetSlide) - 1] : null;
+                
+                let pName = p.name || (linkedSlide ? (linkedSlide.heading ? linkedSlide.heading.replace(/<[^>]*>?/gm, '') : linkedSlide.title) : 'مشروع معماري');
+                let pImg = linkedSlide && linkedSlide.photoUrl ? linkedSlide.photoUrl : (p.photoUrl || 'images/building-1.jpeg');
+                let pLoc = linkedSlide && linkedSlide.location ? linkedSlide.location : (rName + ' — القاهرة الجديدة');
+                
+                let onclick = hasLink ? `onclick="document.getElementById('area-modal').style.display='none'; goToSlide(${parseInt(p.targetSlide)-1});"` : '';
+                let cursor = hasLink ? 'cursor:pointer;' : '';
+                
+                phtml += `
+                <div style="background:rgba(255,255,255,0.03);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.08);border-radius:18px;overflow:hidden;transition:all 0.35s cubic-bezier(0.16,1,0.3,1);${cursor}" ${onclick} onmouseover="this.style.transform='translateY(-6px)';this.style.boxShadow='0 20px 50px rgba(0,0,0,0.6)';this.style.borderColor='rgba(255,255,255,0.18)';" onmouseout="this.style.transform='none';this.style.boxShadow='none';this.style.borderColor='rgba(255,255,255,0.08)';">
+                    <div style="position:relative;width:100%;height:180px;overflow:hidden;">
+                        <img src="${pImg}" alt="${pName}" style="width:100%;height:100%;object-fit:cover;transition:transform 0.5s ease;" onerror="this.src='images/building-1.jpeg'" onmouseover="this.style.transform='scale(1.06)';" onmouseout="this.style.transform='scale(1)';">
+                        ${hasLink ? '<div style="position:absolute;top:10px;left:10px;background:rgba(255,255,255,0.9);backdrop-filter:blur(8px);color:#000;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;">عرض ←</div>' : ''}
+                    </div>
+                    <div style="padding:14px 16px 16px;text-align:right;">
+                        <h4 style="font-size:14.5px;font-weight:700;color:#ffffff;margin:0 0 5px;letter-spacing:-0.01em;line-height:1.3;">${pName}</h4>
+                        <div style="font-size:11.5px;color:#71717a;display:flex;align-items:center;gap:4px;justify-content:flex-end;">📍 ${pLoc}</div>
+                    </div>
+                </div>`;
+            });
+            phtml += '</div>';
+        } else {
+            phtml = `<div style="text-align:center;padding:36px 20px;border:1px dashed rgba(255,255,255,0.08);border-radius:12px;background:rgba(255,255,255,0.01);color:#71717a;font-size:13.5px;font-weight:500;">مشروعات متميزة قيد التطوير والتسليم في هذه المنطقة</div>`;
+        }
+        document.getElementById('area-modal-projects').innerHTML = phtml;
+        
+        document.getElementById('area-modal').style.display = 'block';
+    }
+    window.openRegionModal = openRegionModal;
+
+    function closeLightbox(){
+        if(lightbox) lightbox.classList.remove('active');
+    }
+    if(btnCloseLb) btnCloseLb.addEventListener('click', closeLightbox);
+    if(lightbox) lightbox.addEventListener('click', closeLightbox);
+
+    function updateHUD(){
+        const prog = document.getElementById('hud-progress');
+        if(prog) {
+            const pct = ((current + 1) / TOTAL) * 100;
+            prog.style.width = pct + '%';
+        }
+
+        const bPrev = document.getElementById('btnPrev');
+        const bNext = document.getElementById('btnNext');
+        if(bPrev) {
+            if(current === 0) bPrev.classList.add('disabled');
+            else bPrev.classList.remove('disabled');
+        }
+        if(bNext) {
+            if(current === TOTAL - 1) bNext.classList.add('disabled');
+            else bNext.classList.remove('disabled');
+        }
+    }
+
+    function goToSlide(targetIdx){
+        if(isLocked || targetIdx === current || targetIdx < 0 || targetIdx >= TOTAL) return;
+        isLocked = true;
+
+        const prevSlide = slides[current];
+        const nextSlide = slides[targetIdx];
+
+        if(prevSlide) {
+            prevSlide.classList.remove('active');
+            prevSlide.classList.add('exiting');
+        }
+        if(nextSlide) {
+            nextSlide.classList.add('active');
+        }
+
+        trackSlideTime();
+        current = targetIdx;
+        currentSlideTitle = slides[current].querySelector(".c-heading")?.innerText || slides[current].className.split(" ")[1] || "شريحة";
+        updateHUD();
+        initAdvancedUI();
+        checkAndRunCounter();
+
+        setTimeout(function(){
+            if(prevSlide) prevSlide.classList.remove('exiting');
+            isLocked = false;
+        }, DURATION);
+    }
+    window.goToSlide = goToSlide;
+
+    function nextSlide(){ if(current < TOTAL - 1) goToSlide(current + 1); }
+    function prevSlide(){ if(current > 0) goToSlide(current - 1); }
+
+    // Keyboard (RTL: ArrowLeft = Next / ArrowRight = Prev)
+    document.addEventListener('keydown', function(e){
+        if(e.key === 'Escape'){
+            closeLightbox();
+            const am = document.getElementById('area-modal');
+            if(am) am.style.display = 'none';
+            return;
+        }
+        if(lightbox && lightbox.classList.contains('active')){
+            return;
+        }
+        const am = document.getElementById('area-modal');
+        if(am && am.style.display === 'block'){
+            return;
+        }
+        switch(e.key){
+            case 'ArrowLeft':
+            case 'ArrowDown':
+            case ' ':
+            case 'PageDown':
+                e.preventDefault(); nextSlide(); break;
+            case 'ArrowRight':
+            case 'ArrowUp':
+            case 'PageUp':
+                e.preventDefault(); prevSlide(); break;
+            case 'Home':
+                e.preventDefault(); goToSlide(0); break;
+            case 'End':
+                e.preventDefault(); goToSlide(TOTAL - 1); break;
+        }
+    });
+
+    document.addEventListener('click', function(e){
+        if(e.target.closest('a, button, input, textarea, select, .nav-arrow, .dock-dot, #nav-dock, .project-frame, .map-display-frame, .founder-photo-frame, .gallery-frame, #image-lightbox, #area-modal, .region-tag, .portfolio-card-7, .region-tag-wrap, .region-project-item, [onclick]')) return;
+        nextSlide();
+    });
+
+    document.addEventListener('contextmenu', function(e){
+        e.preventDefault();
+        prevSlide();
+    });
+
+    // Mouse Wheel
+    let wheelLock = false;
+    document.addEventListener('wheel', function(e){
+        e.preventDefault();
+        if(wheelLock) return;
+        wheelLock = true;
+        if(e.deltaY > 0) nextSlide();
+        else prevSlide();
+        setTimeout(function(){ wheelLock = false; }, 500);
+    }, { passive: false });
+
+    // Touch Swipe (Enhanced with velocity tracking)
+    let touchStartX = 0, touchStartY = 0, touchStartTime = 0;
+    document.addEventListener('touchstart', function(e){
+        touchStartX = e.changedTouches[0].screenX;
+        touchStartY = e.changedTouches[0].screenY;
+        touchStartTime = Date.now();
+    }, { passive: true });
+
+    document.addEventListener('touchend', function(e){
+        const diffX = e.changedTouches[0].screenX - touchStartX;
+        const diffY = e.changedTouches[0].screenY - touchStartY;
+        const elapsed = Date.now() - touchStartTime;
+        const velocity = Math.abs(diffX) / (elapsed || 1);
+        
+        // Trigger on distance OR fast flick
+        const isHorizontal = Math.abs(diffX) > Math.abs(diffY);
+        const isSwipe = (Math.abs(diffX) > 40 && isHorizontal) || (velocity > 0.5 && isHorizontal && Math.abs(diffX) > 20);
+        
+        if (isSwipe) {
+            if(diffX < 0) nextSlide();
+            else prevSlide();
+        }
+    }, { passive: true });
+
+    // Live Sync via BroadcastChannel
+    try {
+        if (typeof BroadcastChannel !== 'undefined') {
+            const bc = new BroadcastChannel('zidan_sync_channel');
+            bc.onmessage = function(event) {
+                if (event.data && event.data.type === 'DATA_UPDATED') {
+                    if (typeof applyBrandColor === 'function') applyBrandColor(event.data.data);
+                    renderDynamicDeck();
+                }
+            };
+        }
+    } catch(e){}
+
+    // Animated Counter for Cairo Slide
+    function animateCounter() {
+        const counterElement = document.getElementById('counterProjects');
+        if (!counterElement) return;
+        
+        counterElement.textContent = '0';
+        const targetNumber = parseInt(counterElement.getAttribute('data-target') || '73', 10) || 73;
+        const duration = 2000;
+        const startTime = Date.now();
+        
+        function updateCounter() {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+            const currentNumber = Math.floor(easeOutQuart * targetNumber);
+            
+            counterElement.textContent = currentNumber;
+            if (progress < 1) requestAnimationFrame(updateCounter);
+            else counterElement.textContent = targetNumber;
+        }
+        updateCounter();
+    }
+
+    function checkAndRunCounter() {
+        const slide = document.querySelector('.slide.s-cairo');
+        if (slide && slide.classList.contains('active')) {
+            animateCounter();
+            return true;
+        }
+        return false;
+    }
+
+    // Initial Dynamic Render on Page Load
+    renderDynamicDeck();
+    if (typeof fetchFromCloud === 'function') {
+        fetchFromCloud().then(function(cloudData){
+            if (cloudData) renderDynamicDeck();
+        });
+    }
+
+
+    // Register Service Worker for PWA
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+})();
+</script>
+</body>
+</html>
