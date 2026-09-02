@@ -1800,6 +1800,7 @@
            ══════════════════════════════════════════════════════ */
         #mobile-topbar { display: none; }
         #swipe-hint { display: none; }
+        #mobile-dots { display: none; }
 
         @media (max-width: 767px) {
             #mobile-topbar {
@@ -1845,14 +1846,51 @@
             .nav-arrow.prev { right: auto; left: 14px; }
             .nav-arrow.next svg, .nav-arrow.prev svg { transform: scaleX(-1); }
 
-            /* Progress scrubber becomes a slim pill strung between the two buttons */
-            #hud-progress-wrap {
-                bottom: calc(14px + env(safe-area-inset-bottom) + 12px);
+            /* Old progress scrubber is replaced by the dot pagination below on phones */
+            #hud-progress-wrap { display: none; }
+
+            /* Slide-count dots, strung between the two nav buttons like a native
+               carousel/page indicator. One dot per slide; current slide's dot
+               stretches into a pill. Scrolls horizontally as a safety net on
+               very narrow screens, but is sized to fit comfortably otherwise. */
+            #mobile-dots {
+                display: flex;
+                direction: ltr;
+                align-items: center;
+                justify-content: center;
+                gap: 5px;
+                position: fixed;
+                bottom: calc(14px + env(safe-area-inset-bottom) + 6px);
                 left: 54px; right: 54px;
-                height: 4px;
+                z-index: 150;
+                padding: 9px 12px;
+                max-width: calc(100% - 108px);
+                overflow-x: auto;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+                background: rgba(20, 24, 32, 0.55);
+                border: 1px solid rgba(255, 255, 255, 0.14);
                 border-radius: 100px;
-                overflow: hidden;
+                box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4);
             }
+            #mobile-dots::-webkit-scrollbar { display: none; }
+            .m-dot {
+                flex: 0 0 auto;
+                width: 4px;
+                height: 4px;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.34);
+                cursor: pointer;
+                -webkit-tap-highlight-color: transparent;
+                transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            }
+            .m-dot.active {
+                width: 15px;
+                border-radius: 100px;
+                background: var(--brand-color);
+                box-shadow: 0 0 8px var(--brand-color);
+            }
+            .m-dot:active { transform: scale(1.7); }
         }
 
         @media (max-width: 400px) {
@@ -1888,7 +1926,7 @@
                universal !important kill-switch. ── */
             #mobile-topbar,
             .nav-arrow,
-            #hud-progress-wrap {
+            #mobile-dots {
                 backdrop-filter: blur(22px) saturate(1.4) !important;
                 -webkit-backdrop-filter: blur(22px) saturate(1.4) !important;
             }
@@ -1926,24 +1964,10 @@
                 box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.12);
             }
 
-            /* ── Progress scrubber: soft glow at the leading edge ── */
-            #hud-progress-wrap {
-                background: rgba(255, 255, 255, 0.12);
+            /* ── Dot pagination: brighter glass + tap feedback matching the nav buttons ── */
+            #mobile-dots {
+                background: rgba(255, 255, 255, 0.1);
                 box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
-            }
-            #hud-progress {
-                position: relative;
-                background: linear-gradient(90deg, rgba(255,255,255,0.55), #ffffff);
-            }
-            #hud-progress::after {
-                content: '';
-                position: absolute;
-                top: 50%; right: -2px;
-                width: 8px; height: 8px;
-                background: #ffffff;
-                border-radius: 50%;
-                transform: translateY(-50%);
-                box-shadow: 0 0 8px 2px rgba(255, 255, 255, 0.65);
             }
 
             /* ── Let gallery artwork breathe — less letterboxing ── */
@@ -2049,6 +2073,10 @@
         <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
         <span>اسحب للتصفح</span>
     </div>
+
+    <!-- Bottom dot pagination — one dot per slide, phones only. Lives outside
+         #presentation so it survives renderDynamicDeck()'s innerHTML rebuild. -->
+    <nav id="mobile-dots" aria-label="التنقل بين الشرائح"></nav>
 
     <!-- Ambient Orbs -->
     <div class="ambient-orb orb-1"></div>
@@ -2960,6 +2988,7 @@
 
         slides = document.querySelectorAll('.slide');
         TOTAL = slides.length || 1;
+        buildMobileDots();
         if (current >= TOTAL) current = TOTAL - 1;
         if (slides[current]) slides[current].classList.add('active');
 
@@ -3160,11 +3189,42 @@
     if(btnCloseLb) btnCloseLb.addEventListener('click', closeLightbox);
     if(lightbox) lightbox.addEventListener('click', closeLightbox);
 
+    // Builds the mobile bottom pagination: one tappable dot per slide.
+    // Called once TOTAL is known (see renderDynamicDeck) so it stays in
+    // sync even when the deck's slide count comes from live dashboard data.
+    function buildMobileDots(){
+        const dotsWrap = document.getElementById('mobile-dots');
+        if(!dotsWrap) return;
+        let html = '';
+        for(let i = 0; i < TOTAL; i++){
+            html += '<span class="m-dot" data-idx="' + i + '"></span>';
+        }
+        dotsWrap.innerHTML = html;
+        dotsWrap.querySelectorAll('.m-dot').forEach(function(dot){
+            dot.onclick = function(e){
+                e.stopPropagation();
+                goToSlide(parseInt(dot.getAttribute('data-idx'), 10));
+            };
+        });
+    }
+
     function updateHUD(){
         const prog = document.getElementById('hud-progress');
         if(prog) {
             const pct = ((current + 1) / TOTAL) * 100;
             prog.style.width = pct + '%';
+        }
+
+        // Mobile dot pagination: mark the current slide's dot and glide it into view
+        const dotsWrap = document.getElementById('mobile-dots');
+        if(dotsWrap) {
+            const prevActive = dotsWrap.querySelector('.m-dot.active');
+            if(prevActive) prevActive.classList.remove('active');
+            const nextActive = dotsWrap.querySelector('.m-dot[data-idx="' + current + '"]');
+            if(nextActive) {
+                nextActive.classList.add('active');
+                nextActive.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            }
         }
 
         const bPrev = document.getElementById('btnPrev');
@@ -3257,7 +3317,7 @@
     });
 
     document.addEventListener('click', function(e){
-        if(e.target.closest('a, button, input, textarea, select, .nav-arrow, .dock-dot, #nav-dock, #mobile-topbar, #hud-progress-wrap, .project-frame, .map-display-frame, .founder-photo-frame, .gallery-frame, #image-lightbox, #area-modal, .region-tag, .portfolio-card-7, .region-tag-wrap, .region-project-item, [onclick]')) return;
+        if(e.target.closest('a, button, input, textarea, select, .nav-arrow, .dock-dot, #nav-dock, #mobile-topbar, #hud-progress-wrap, #mobile-dots, .project-frame, .map-display-frame, .founder-photo-frame, .gallery-frame, #image-lightbox, #area-modal, .region-tag, .portfolio-card-7, .region-tag-wrap, .region-project-item, [onclick]')) return;
         nextSlide();
     });
 
