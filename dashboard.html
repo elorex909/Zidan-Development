@@ -389,61 +389,78 @@
         /* ══════════════════════════════════════════════════════
            DASHBOARD RESPONSIVE DESIGN
            ══════════════════════════════════════════════════════ */
-        
+
         /* ── Tablet (max 1024px) ── */
         @media (max-width: 1024px) {
-            .sidebar { width: 240px; }
+            .sidebar { width: 220px; min-width: 220px; }
             .canvas { padding: 30px; max-width: 100%; }
-            .tbtn span { display: none; }
-            .tbtn { padding: 8px 12px; font-size: 14px; }
+            .rbtn { padding: 7px 12px; font-size: 12px; }
         }
 
-        /* ── Tablet Portrait & Mobile (max 768px) ── */
+        /* ── Tablet Portrait & Mobile (max 768px) ──
+           Note: the container is .workspace and the toolbar is .ribbon/.rbtn —
+           earlier rules here targeted .layout/.toolbar/.tbtn, which don't
+           exist on this markup, so they never actually applied on phones. */
         @media (max-width: 768px) {
-            .layout { flex-direction: column; }
-            .sidebar { 
-                width: 100%; height: auto; max-height: 35vh; 
-                border-right: none; border-bottom: 1px solid rgba(255,255,255,0.08);
-                overflow-y: auto;
+            /* Ribbon becomes two independently-scrollable rows instead of
+               one overflowing line of ~15 buttons */
+            .ribbon {
+                height: auto; min-height: 52px;
+                flex-direction: column; align-items: stretch;
+                padding: 8px 0; gap: 8px;
             }
-            #sidebar-list { 
+            .ribbon-left, .ribbon > div:last-child {
+                overflow-x: auto; -webkit-overflow-scrolling: touch;
+                padding: 0 12px 4px; scrollbar-width: thin;
+            }
+            .ribbon-logo img { height: 22px; margin-left: 10px; }
+            .ribbon-sep { flex-shrink: 0; }
+            .rbtn { flex-shrink: 0; padding: 7px 12px; font-size: 12px; }
+
+            /* Sidebar + canvas stack vertically; sidebar becomes a
+               horizontally-scrolling strip of slide cards */
+            .workspace { flex-direction: column; overflow-y: auto; }
+            .sidebar {
+                width: 100%; min-width: 0; height: auto; max-height: 32vh;
+                border-left: none; border-bottom: 1px solid rgba(255,255,255,0.08);
+                box-shadow: none;
+            }
+            #sidebar-list {
                 display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 10px; padding: 10px;
-                scrollbar-width: thin;
+                -webkit-overflow-scrolling: touch; scrollbar-width: thin;
             }
-            .scard { 
-                min-width: 160px; flex-shrink: 0; padding: 10px 12px;
-            }
+            .scard { min-width: 165px; flex-shrink: 0; padding: 10px 12px; margin-bottom: 0; }
             .scard-actions { flex-wrap: nowrap; }
             .scard-btn { padding: 2px 6px; font-size: 11px; }
+
             .stage { padding: 16px; }
-            .canvas { 
-                padding: 20px 16px; min-height: auto; border-radius: 10px;
-            }
-            .g2 { grid-template-columns: 1fr !important; gap: 20px; }
-            .toolbar { flex-wrap: wrap; gap: 6px; padding: 8px 12px; }
-            .tbtn { padding: 6px 10px; font-size: 12px; }
-            .rbtn { padding: 8px 14px; font-size: 12px; }
-            .area-card { min-width: 220px; max-width: 260px; }
+            .canvas { padding: 20px 16px; min-height: auto; border-radius: 10px; }
+            .g2, .g2-wide { grid-template-columns: 1fr !important; gap: 18px; }
+            .g3 { grid-template-columns: 1fr !important; }
             .h-scroll { gap: 10px; }
+            .area-card { min-width: 220px; max-width: 260px; }
             .c-heading { font-size: 24px !important; }
+            .hero-text { font-size: 34px !important; }
             .stat-num { font-size: 42px !important; }
+            .modal-box { padding: 24px 18px; width: 94%; max-width: 94%; }
         }
 
         /* ── Mobile (max 480px) ── */
         @media (max-width: 480px) {
-            .sidebar { max-height: 30vh; }
-            .scard { min-width: 140px; }
+            .sidebar { max-height: 28vh; }
+            .scard { min-width: 145px; }
             .scard-title { font-size: 12px; }
             .stage { padding: 10px; }
             .canvas { padding: 16px 12px; }
-            .toolbar { padding: 6px 10px; }
-            .tbtn { padding: 5px 8px; font-size: 11px; }
-            .tbtn span { display: none; }
+            .rbtn { padding: 6px 10px; font-size: 11.5px; }
+            .tbtn { padding: 8px 14px; font-size: 12.5px; }
             .area-card { min-width: 200px; max-width: 240px; padding: 14px; }
             .c-heading { font-size: 20px !important; }
+            .hero-text { font-size: 26px !important; }
             .c-badge { font-size: 11px !important; }
             .c-desc { font-size: 13px !important; }
             .modal-box { padding: 22px 16px; border-radius: 14px; }
+            .preset-grid { grid-template-columns: repeat(2, 1fr); }
             #chart-type-switch { gap: 4px; }
             #chart-type-switch .tbtn { padding: 5px 8px; font-size: 11px; }
             .analytics-grid { grid-template-columns: 1fr !important; gap: 14px; }
@@ -452,6 +469,65 @@
             .milestone { padding: 12px; }
             .milestone-num { width: 34px; height: 34px; font-size: 13px; }
             .save-toast { font-size: 12px; padding: 10px 20px; }
+        }
+
+        /* ══════════════════════════════════════════════════════
+           MOBILE APP POLISH PASS (phones only, ≤768px)
+           Desktop & tablet are completely untouched — everything
+           here lives inside max-width:768px queries. Focus: turn
+           the horizontally-scrolling strips (ribbon, slide list,
+           area-card carousels) into an obvious, native-feeling
+           "shelf" instead of content that just cuts off at the
+           screen edge, add real touch feedback since phones have
+           no :hover, and fix controls that were hover-only (and
+           therefore unreachable by touch).
+           ══════════════════════════════════════════════════════ */
+        @media (max-width: 768px) {
+            /* Respect the iPhone notch/home-indicator since #studio is
+               position:fixed;inset:0 and the ribbon sits at its top edge. */
+            .ribbon { padding-top: env(safe-area-inset-top); height: calc(60px + env(safe-area-inset-top)); }
+            .stage { padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+
+            /* ── Fade-edge hint on every horizontally-scrolling strip:
+               a soft mask instead of a hard cut tells you at a glance
+               there's more content sideways — the same trick iOS/Android
+               toolbars use. Kept off elements that already scroll to the
+               true edge (first row of ribbon) so the fade doesn't clip
+               the first/last real button. ── */
+            .ribbon-left, .ribbon > div:last-child, #sidebar-list, .h-scroll {
+                -webkit-mask-image: linear-gradient(to left, transparent 0, #000 20px, #000 calc(100% - 20px), transparent 100%);
+                mask-image: linear-gradient(to left, transparent 0, #000 20px, #000 calc(100% - 20px), transparent 100%);
+                scroll-snap-type: x proximity;
+            }
+            .rbtn, .scard, .area-card { scroll-snap-align: start; }
+
+            /* ── Real tap feedback everywhere touch replaces hover ── */
+            .rbtn, .scard, .scard-btn, .area-card, .tbtn, .mall-card, .vision-card, .milestone {
+                -webkit-tap-highlight-color: transparent;
+                transition: transform 0.15s cubic-bezier(0.16,1,0.3,1), background 0.2s ease, border-color 0.2s ease;
+            }
+            .rbtn:active, .tbtn:active { transform: scale(0.95); }
+            .scard:active, .area-card:active, .mall-card:active, .vision-card:active, .milestone:active { transform: scale(0.97); }
+
+            /* ── Fix: delete buttons on area/mall/vision cards were
+               opacity:0 until :hover, which never fires reliably on
+               touch — making them effectively impossible to tap. ── */
+            .item-del-btn { opacity: 1; background: rgba(248,113,113,0.12); }
+
+            /* ── Comfortable touch targets (44px guideline) on the
+               small icon-only buttons inside slide cards ── */
+            .scard-btn { padding: 7px 10px; font-size: 12px; }
+            .scard-actions { gap: 8px; }
+
+            /* ── Area-card carousel: a touch more breathing room and
+               tighter label wrapping so "الشريحة المرتبطة بالكارت"
+               reads on one or two lines instead of stacking word-by-word ── */
+            .area-card { min-width: 270px; }
+            .area-card [style*="font-size:11px"] { line-height: 1.6; }
+
+            /* ── Ribbon buttons: slightly taller so they clear the
+               44px touch-target guideline (was ~34px effective) ── */
+            .rbtn { padding: 10px 16px; }
         }
 
         </style>
