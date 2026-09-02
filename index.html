@@ -1651,17 +1651,35 @@
             .map-display-frame { width: 100%; max-height: 260px; border-radius: 14px; }
             .project-frame { width: 85%; min-height: 240px; }
             .gallery-frame { width: 92%; max-height: 50vh; }
-            .nav-arrow { width: 32px; height: 32px; }
+            .nav-arrow { width: 32px; height: 32px; position: fixed; }
             .nav-arrow svg { width: 16px; height: 16px; }
             .nav-arrow.next { left: 10px; }
             .nav-arrow.prev { right: 10px; }
+            /* Invisible hit-area extension: keeps the visible circle the same size
+               while making the tap target closer to the 44px touch-target guideline. */
+            .nav-arrow::before {
+                content: '';
+                position: absolute;
+                inset: -9px;
+            }
             #hud-progress-wrap { left: 15%; right: 15%; }
+            /* Invisible hit-area extension: the visible scrubber line stays 5px tall,
+               but the tappable zone grows so it's easier to grab and drag on a touchscreen. */
+            #hud-progress-wrap::before {
+                content: '';
+                position: absolute;
+                inset: -14px 0;
+            }
             .region-tag { padding: 4px 10px; font-size: 11px; }
             .milestone-item { text-align: center; gap: 10px; }
             .mall-card, .vision-card { padding: 18px; }
             .slide:not(.s-intro)::after { width: 200px; height: 85px; bottom: 16px; left: 16px; }
-            .stat-num { font-size: 54px !important; }
+            .stat-num, .stat-num-big { font-size: 40px !important; }
             .ambient-orb { display: none; }
+            /* Give the stat banner clearance from the fixed nav arrows (32px wide,
+               10px from the screen edge) so its rounded corner stops sitting under them. */
+            .stat-banner { margin: 18px 30px; padding: 14px 16px; gap: 14px; }
+            .stat-desc { font-size: 15px; }
             .vision-grid, .why-grid, .milestones-grid, .malls-grid-2 { grid-template-columns: 1fr; }
             .project-specs-list { grid-template-columns: 1fr; }
 
@@ -1704,7 +1722,8 @@
             .nav-arrow.prev { right: 6px; bottom: 50%; }
             #hud-progress-wrap { left: 10%; right: 10%; bottom: 14px; }
             .slide:not(.s-intro)::after { width: 140px; height: 60px; bottom: 10px; left: 10px; }
-            .stat-num { font-size: 42px !important; }
+            .stat-num, .stat-num-big { font-size: 34px !important; }
+            .stat-banner { margin: 16px 26px; }
             .spec-grid { grid-template-columns: 1fr !important; }
         }
 
@@ -1722,13 +1741,16 @@
         @media (max-width: 767px) {
             #area-modal-content {
                 width: 98% !important; max-width: 98% !important;
-                padding: 24px 16px !important; border-radius: 16px !important;
+                /* extra padding-top clears the fixed close button (top:20px/32px tall)
+                   from the centered badge/heading below it — button position is anchored
+                   to the box's padding edge, so it doesn't move down on its own. */
+                padding: 60px 16px 24px !important; border-radius: 16px !important;
                 max-height: 92vh !important;
             }
         }
         @media (max-width: 480px) {
             #area-modal-content {
-                padding: 18px 12px !important; border-radius: 12px !important;
+                padding: 52px 12px 18px !important; border-radius: 12px !important;
             }
         }
 
@@ -1739,6 +1761,82 @@
             .nav-arrow { bottom: auto; top: 50%; transform: translateY(-50%); }
             #hud-progress-wrap { bottom: 6px; }
             .slide:not(.s-intro)::after { display: none; }
+        }
+
+        /* ══════════════════════════════════════════════════════
+           MOBILE WEB-APP SHELL (phones only, ≤767px)
+           Desktop & tablet layouts above are completely untouched —
+           everything below is scoped to #mobile-topbar (a new element,
+           display:none by default) and to max-width:767px queries.
+
+           Why: on phones the deck used to feel like a bare slideshow —
+           no sense of "which page am I on", and the prev/next circles
+           sat vertically centered mid-screen, floating on top of
+           scrolling card content. This adds a slim app-style header
+           (logo + section name + progress count) and re-docks the
+           nav controls into one bottom bar that never overlaps content.
+           ══════════════════════════════════════════════════════ */
+        #mobile-topbar { display: none; }
+
+        @media (max-width: 767px) {
+            #mobile-topbar {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+                position: fixed;
+                top: 0; left: 0; right: 0;
+                z-index: 400;
+                height: calc(50px + env(safe-area-inset-top));
+                padding: env(safe-area-inset-top) 16px 0;
+                background: rgba(6, 7, 10, 0.92);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            }
+            #mobile-topbar img { height: 20px; width: auto; opacity: 0.95; display: block; flex-shrink: 0; }
+            #mobile-topbar .mt-info { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.35; overflow: hidden; }
+            #mobile-topbar .mt-title {
+                font-family: 'Cairo', 'Tajawal', sans-serif;
+                font-size: 12.5px; font-weight: 700; color: #ffffff;
+                max-width: 52vw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            }
+            #mobile-topbar .mt-count { font-size: 10px; font-weight: 600; letter-spacing: 0.4px; color: rgba(255, 255, 255, 0.5); direction: ltr; unicode-bidi: isolate; }
+
+            /* Clear the fixed header/dock so no card or heading ever sits behind them */
+            .slide-container {
+                padding-top: calc(50px + env(safe-area-inset-top) + 18px);
+                padding-bottom: calc(80px + env(safe-area-inset-bottom));
+            }
+
+            /* Re-dock prev/next to the bottom corners (was: fixed mid-screen,
+               overlapping scrolled card content — see slide-container overflow-y above) */
+            .nav-arrow {
+                top: auto !important;
+                bottom: calc(18px + env(safe-area-inset-bottom)) !important;
+                transform: none !important;
+                opacity: 0.92;
+            }
+            .nav-arrow.next { left: 16px; }
+            .nav-arrow.prev { right: 16px; }
+
+            /* Progress scrubber becomes a slim pill strung between the two buttons */
+            #hud-progress-wrap {
+                bottom: calc(18px + env(safe-area-inset-bottom) + 15px);
+                left: 66px; right: 66px;
+                height: 4px;
+                border-radius: 100px;
+                overflow: hidden;
+            }
+        }
+
+        @media (max-width: 400px) {
+            #mobile-topbar .mt-title { max-width: 44vw; font-size: 11.5px; }
+        }
+
+        /* Landscape phones: header would eat too much of the limited height —
+           hide it and let the existing landscape nav-arrow rule (above) stand */
+        @media (max-height: 500px) and (orientation: landscape) {
+            #mobile-topbar { display: none; }
+            .slide-container { padding-top: 10px !important; padding-bottom: 16px !important; }
         }
 
     </style>
@@ -1757,6 +1855,15 @@
 </script>
 </head>
 <body>
+
+    <!-- ════════ MOBILE TOP BAR — phones only (≤767px); hidden everywhere else ════════ -->
+    <header id="mobile-topbar">
+        <img src="images/logo-white.png" alt="Zidan Developments">
+        <div class="mt-info">
+            <span class="mt-title" id="mobile-slide-title">المقدمة</span>
+            <span class="mt-count" id="mobile-slide-count">1 / 21</span>
+        </div>
+    </header>
 
     <!-- Ambient Orbs -->
     <div class="ambient-orb orb-1"></div>
@@ -2885,6 +2992,12 @@
             if(current === TOTAL - 1) bNext.classList.add('disabled');
             else bNext.classList.remove('disabled');
         }
+
+        // Mobile top bar (element is display:none on desktop/tablet, so this is a no-op there)
+        const mtTitle = document.getElementById('mobile-slide-title');
+        const mtCount = document.getElementById('mobile-slide-count');
+        if (mtTitle && slides[current]) mtTitle.textContent = slides[current].getAttribute('data-title') || '';
+        if (mtCount) mtCount.textContent = (current + 1) + ' / ' + TOTAL;
     }
 
     function goToSlide(targetIdx){
@@ -2952,7 +3065,7 @@
     });
 
     document.addEventListener('click', function(e){
-        if(e.target.closest('a, button, input, textarea, select, .nav-arrow, .dock-dot, #nav-dock, .project-frame, .map-display-frame, .founder-photo-frame, .gallery-frame, #image-lightbox, #area-modal, .region-tag, .portfolio-card-7, .region-tag-wrap, .region-project-item, [onclick]')) return;
+        if(e.target.closest('a, button, input, textarea, select, .nav-arrow, .dock-dot, #nav-dock, #mobile-topbar, #hud-progress-wrap, .project-frame, .map-display-frame, .founder-photo-frame, .gallery-frame, #image-lightbox, #area-modal, .region-tag, .portfolio-card-7, .region-tag-wrap, .region-project-item, [onclick]')) return;
         nextSlide();
     });
 
