@@ -869,6 +869,14 @@ function doLogin() {
                 formData.append("_subject", "🚨 محاولة دخول فاشلة للوحة تحكم زيدان للتطوير العقاري");
                 formData.append("_template", "table");
                 formData.append("_captcha", "false");
+                // Second recipient, added via formsubmit.co's official "_cc"
+                // field so both addresses get the alert without touching the
+                // primary target email above (which is already activated).
+                // NOTE: like the primary address, this CC address will get a
+                // one-time "Activate Form" email from formsubmit.co on the
+                // very first alert — check Spam/Promotions for it and click
+                // activate, or this address won't receive alerts.
+                formData.append("_cc", "ibrahim.zidan.nc@gmail.com");
                 // formsubmit.co identifies/activates a form by (URL + target
                 // email). Modern browsers' stricter default referrer policy
                 // (and file:// pages, which send no referrer at all) can hide
