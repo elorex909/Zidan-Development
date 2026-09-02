@@ -1651,8 +1651,8 @@
             .map-display-frame { width: 100%; max-height: 260px; border-radius: 14px; }
             .project-frame { width: 85%; min-height: 240px; }
             .gallery-frame { width: 92%; max-height: 50vh; }
-            .nav-arrow { width: 32px; height: 32px; position: fixed; }
-            .nav-arrow svg { width: 16px; height: 16px; }
+            .nav-arrow { width: 30px; height: 30px; position: fixed; }
+            .nav-arrow svg { width: 15px; height: 15px; }
             .nav-arrow.next { left: 10px; }
             .nav-arrow.prev { right: 10px; }
             /* Invisible hit-area extension: keeps the visible circle the same size
@@ -1717,7 +1717,7 @@
             .project-frame { width: 92%; min-height: 200px; }
             .gallery-frame { width: 96%; }
             .region-tag { font-size: 10.5px; padding: 3px 8px; margin: 2px; }
-            .nav-arrow { width: 28px; height: 28px; }
+            .nav-arrow { width: 26px; height: 26px; }
             .nav-arrow.next { left: 6px; bottom: 50%; }
             .nav-arrow.prev { right: 6px; bottom: 50%; }
             #hud-progress-wrap { left: 10%; right: 10%; bottom: 14px; }
@@ -1734,7 +1734,7 @@
             .portfolio-card-7 { padding: 14px 12px 14px; }
             .portfolio-card-7 h3 { font-size: 13px; }
             .region-tag { font-size: 10px; }
-            .nav-arrow { width: 24px; height: 24px; }
+            .nav-arrow { width: 22px; height: 22px; }
         }
 
         /* ── Area Modal Responsive ── */
@@ -1788,41 +1788,45 @@
                 position: fixed;
                 top: 0; left: 0; right: 0;
                 z-index: 400;
-                height: calc(50px + env(safe-area-inset-top));
+                height: calc(46px + env(safe-area-inset-top));
                 padding: env(safe-area-inset-top) 16px 0;
                 background: rgba(6, 7, 10, 0.92);
                 border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             }
-            #mobile-topbar img { height: 20px; width: auto; opacity: 0.95; display: block; flex-shrink: 0; }
+            #mobile-topbar img { height: 18px; width: auto; opacity: 0.95; display: block; flex-shrink: 0; }
             #mobile-topbar .mt-info { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.35; overflow: hidden; }
             #mobile-topbar .mt-title {
                 font-family: 'Cairo', 'Tajawal', sans-serif;
-                font-size: 12.5px; font-weight: 700; color: #ffffff;
+                font-size: 12px; font-weight: 700; color: #ffffff;
                 max-width: 52vw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
             }
-            #mobile-topbar .mt-count { font-size: 10px; font-weight: 600; letter-spacing: 0.4px; color: rgba(255, 255, 255, 0.5); direction: ltr; unicode-bidi: isolate; }
+            #mobile-topbar .mt-count { font-size: 9.5px; font-weight: 600; letter-spacing: 0.4px; color: rgba(255, 255, 255, 0.5); direction: ltr; unicode-bidi: isolate; }
 
             /* Clear the fixed header/dock so no card or heading ever sits behind them */
             .slide-container {
-                padding-top: calc(50px + env(safe-area-inset-top) + 18px);
-                padding-bottom: calc(80px + env(safe-area-inset-bottom));
+                padding-top: calc(46px + env(safe-area-inset-top) + 16px);
+                padding-bottom: calc(72px + env(safe-area-inset-bottom));
             }
 
             /* Re-dock prev/next to the bottom corners (was: fixed mid-screen,
                overlapping scrolled card content — see slide-container overflow-y above) */
             .nav-arrow {
                 top: auto !important;
-                bottom: calc(18px + env(safe-area-inset-bottom)) !important;
+                bottom: calc(14px + env(safe-area-inset-bottom)) !important;
                 transform: none !important;
                 opacity: 0.92;
             }
-            .nav-arrow.next { left: 16px; }
-            .nav-arrow.prev { right: 16px; }
+            /* Mirror the RTL arrow layout for phones only — next→right,
+               prev→left, chevrons flipped to match. Desktop keeps the
+               original "next on the left" RTL layout defined above. */
+            .nav-arrow.next { left: auto; right: 14px; }
+            .nav-arrow.prev { right: auto; left: 14px; }
+            .nav-arrow.next svg, .nav-arrow.prev svg { transform: scaleX(-1); }
 
             /* Progress scrubber becomes a slim pill strung between the two buttons */
             #hud-progress-wrap {
-                bottom: calc(18px + env(safe-area-inset-bottom) + 15px);
-                left: 66px; right: 66px;
+                bottom: calc(14px + env(safe-area-inset-bottom) + 12px);
+                left: 54px; right: 54px;
                 height: 4px;
                 border-radius: 100px;
                 overflow: hidden;
@@ -1955,7 +1959,7 @@
             #swipe-hint {
                 position: fixed;
                 left: 50%;
-                bottom: calc(86px + env(safe-area-inset-bottom));
+                bottom: calc(76px + env(safe-area-inset-bottom));
                 transform: translateX(-50%) translateY(6px);
                 z-index: 410;
                 display: flex;
