@@ -1777,6 +1777,7 @@
            nav controls into one bottom bar that never overlaps content.
            ══════════════════════════════════════════════════════ */
         #mobile-topbar { display: none; }
+        #swipe-hint { display: none; }
 
         @media (max-width: 767px) {
             #mobile-topbar {
@@ -1839,6 +1840,158 @@
             .slide-container { padding-top: 10px !important; padding-bottom: 16px !important; }
         }
 
+        /* ══════════════════════════════════════════════════════
+           MOBILE PREMIUM POLISH PASS (phones only, ≤767px)
+           Desktop & tablet are untouched — same scoping approach
+           as the shell above. This pass focuses purely on the
+           tactile / depth details that separate a slideshow from
+           a native-feeling app: frosted glass on the fixed nav,
+           real tap feedback (mobile has no :hover), richer card
+           depth to compensate for the blur we deliberately keep
+           off scrolling content, a glowing progress scrubber,
+           bigger breathing room for gallery artwork, and a
+           one-time swipe hint for first-time visitors.
+           ══════════════════════════════════════════════════════ */
+        @media (max-width: 767px) {
+
+            /* ── Frosted glass, but ONLY on the few small FIXED nav
+               elements (not scrolling cards) — cheap for the GPU
+               since they're a single static compositing layer, unlike
+               the ~25 scrolling elements the perf rule above targets.
+               Higher-specificity ID/class selectors win over the
+               universal !important kill-switch. ── */
+            #mobile-topbar,
+            .nav-arrow,
+            #hud-progress-wrap {
+                backdrop-filter: blur(22px) saturate(1.4) !important;
+                -webkit-backdrop-filter: blur(22px) saturate(1.4) !important;
+            }
+            #mobile-topbar { background: rgba(6, 7, 10, 0.82); }
+            .nav-arrow { background: rgba(16, 18, 24, 0.72); }
+
+            /* ── Real tap feedback everywhere touch replaces hover ── */
+            .portfolio-card-7, .mall-card, .vision-card, .milestone-item,
+            .region-tag, .contact-pill, .nav-arrow, .pill-badge,
+            .project-frame, .gallery-frame, .founder-photo-frame {
+                -webkit-tap-highlight-color: transparent;
+                transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s ease, background 0.25s ease, border-color 0.25s ease;
+            }
+            .portfolio-card-7:active, .mall-card:active, .vision-card:active,
+            .milestone-item:active, .region-tag:active, .contact-pill:active,
+            .project-frame:active, .gallery-frame:active {
+                transform: scale(0.965);
+            }
+            .nav-arrow:active { transform: scale(0.88) !important; }
+            .pill-badge:active { transform: scale(0.95); }
+
+            /* ── Card depth: richer gradient stands in for the blur
+               that's intentionally off on scrolling content, so cards
+               still read as elevated glass rather than flat panels ── */
+            .portfolio-card-7, .mall-card, .vision-card, .project-info-card,
+            .milestone-item {
+                background: linear-gradient(165deg, rgba(34, 37, 45, 0.92) 0%, rgba(12, 13, 17, 0.94) 100%);
+                box-shadow: 0 16px 34px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+            }
+            .milestone-item { background: var(--brand-color); } /* keep the light-mode origin cards as-authored */
+
+            /* Icon boxes: slightly stronger glow ring so they read
+               clearly against the new card gradient */
+            .card-icon-box, .mall-icon-box, .vision-icon-box {
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            }
+
+            /* ── Progress scrubber: soft glow at the leading edge ── */
+            #hud-progress-wrap {
+                background: rgba(255, 255, 255, 0.12);
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+            }
+            #hud-progress {
+                position: relative;
+                background: linear-gradient(90deg, rgba(255,255,255,0.55), #ffffff);
+            }
+            #hud-progress::after {
+                content: '';
+                position: absolute;
+                top: 50%; right: -2px;
+                width: 8px; height: 8px;
+                background: #ffffff;
+                border-radius: 50%;
+                transform: translateY(-50%);
+                box-shadow: 0 0 8px 2px rgba(255, 255, 255, 0.65);
+            }
+
+            /* ── Let gallery artwork breathe — less letterboxing ── */
+            .gallery-frame { max-height: 66vh; width: 94vw; }
+            .gallery-frame img { border-radius: 14px; }
+
+            /* Gallery images are often square marketing tiles that can't fill a
+               tall phone screen without cropping their own baked-in text — so
+               instead of empty space above/below, blur a cover-fit copy of the
+               same image behind it (the Instagram Stories / Spotify trick).
+               --gallery-bg is set per-slide by primeGalleryBackdrops() in JS. */
+            .s-gallery::before {
+                content: '';
+                position: absolute;
+                inset: 0;
+                z-index: 1;
+                background-image: var(--gallery-bg, none);
+                background-size: cover;
+                background-position: center;
+                filter: blur(55px) brightness(0.45) saturate(1.35);
+                transform: scale(1.2);
+                opacity: 0;
+                transition: opacity 0.6s ease;
+                pointer-events: none;
+            }
+            .s-gallery.active::before { opacity: 1; }
+            .s-gallery .slide-container { position: relative; z-index: 2; }
+
+            /* ── Project photos: subtle ring + deeper shadow for polish ── */
+            .project-frame, .map-display-frame {
+                box-shadow: 0 20px 45px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.06);
+            }
+
+            /* ── One-time swipe hint (see JS) ── */
+            #swipe-hint {
+                position: fixed;
+                left: 50%;
+                bottom: calc(86px + env(safe-area-inset-bottom));
+                transform: translateX(-50%) translateY(6px);
+                z-index: 410;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 9px 18px;
+                background: rgba(18, 20, 26, 0.72);
+                backdrop-filter: blur(18px);
+                -webkit-backdrop-filter: blur(18px);
+                border: 1px solid rgba(255, 255, 255, 0.14);
+                border-radius: 100px;
+                box-shadow: 0 14px 30px rgba(0, 0, 0, 0.5);
+                font-family: 'Cairo', 'Tajawal', sans-serif;
+                font-size: 12.5px;
+                font-weight: 600;
+                color: #fff;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+                white-space: nowrap;
+            }
+            #swipe-hint.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+            #swipe-hint svg { width: 15px; height: 15px; fill: #fff; animation: swipeHintNudge 1.4s ease-in-out infinite; }
+            @keyframes swipeHintNudge {
+                0%, 100% { transform: translateX(0); }
+                50% { transform: translateX(-5px); }
+            }
+
+            /* ── Header gains depth once the active slide has scrolled ── */
+            #mobile-topbar { transition: box-shadow 0.3s ease, background 0.3s ease; }
+            #mobile-topbar.scrolled {
+                background: rgba(6, 7, 10, 0.86);
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+            }
+        }
+
     </style>
     
     <style>
@@ -1864,6 +2017,12 @@
             <span class="mt-count" id="mobile-slide-count">1 / 21</span>
         </div>
     </header>
+
+    <!-- One-time onboarding hint — phones only, shown briefly then dismissed for the session -->
+    <div id="swipe-hint">
+        <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+        <span>اسحب للتصفح</span>
+    </div>
 
     <!-- Ambient Orbs -->
     <div class="ambient-orb orb-1"></div>
@@ -2998,6 +3157,13 @@
         const mtCount = document.getElementById('mobile-slide-count');
         if (mtTitle && slides[current]) mtTitle.textContent = slides[current].getAttribute('data-title') || '';
         if (mtCount) mtCount.textContent = (current + 1) + ' / ' + TOTAL;
+
+        // Gallery slides: prime the blurred backdrop from the slide's own image
+        // (no-op on desktop/tablet — the pseudo-element it feeds is mobile-only)
+        if (slides[current] && slides[current].classList.contains('s-gallery')) {
+            const gImg = slides[current].querySelector('.gallery-frame img');
+            if (gImg && gImg.src) slides[current].style.setProperty('--gallery-bg', 'url("' + gImg.src + '")');
+        }
     }
 
     function goToSlide(targetIdx){
@@ -3170,6 +3336,35 @@
         });
     }
 
+    // ── Mobile polish: one-time swipe hint + scroll-aware header shadow ──
+    // (No-ops on desktop/tablet: the hint element is display:none there,
+    // and the topbar it shadows doesn't exist outside the phone breakpoint.)
+    (function mobilePolish(){
+        const isPhone = () => window.matchMedia('(max-width: 767px)').matches;
+        const hint = document.getElementById('swipe-hint');
+        const topbar = document.getElementById('mobile-topbar');
+
+        if (hint && isPhone() && !sessionStorage.getItem('zidanSwipeHintShown')) {
+            const hintTimer = setTimeout(function(){
+                if (current === 0) hint.classList.add('show');
+            }, 1300);
+            function dismissHint(){
+                clearTimeout(hintTimer);
+                clearTimeout(autoHideTimer);
+                hint.classList.remove('show');
+                sessionStorage.setItem('zidanSwipeHintShown', '1');
+            }
+            document.addEventListener('touchstart', dismissHint, { once: true, passive: true });
+            const autoHideTimer = setTimeout(dismissHint, 5000);
+        }
+
+        // Header gains a soft shadow once the active slide's content is scrolled down
+        document.addEventListener('scroll', function(e){
+            const el = e.target;
+            if (!topbar || !el || !el.classList || !el.classList.contains('slide-container')) return;
+            topbar.classList.toggle('scrolled', el.scrollTop > 8);
+        }, true);
+    })();
 
     // Register Service Worker for PWA
     if ('serviceWorker' in navigator) {
