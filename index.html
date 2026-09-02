@@ -68,6 +68,7 @@
             -webkit-font-smoothing: antialiased;
             user-select: none;
             cursor: default;
+            touch-action: manipulation;
         }
 
         /* ══════════════════════════════════════════════════════
@@ -162,9 +163,14 @@
         #presentation {
             width: 100vw;
             height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
             position: relative;
             overflow: hidden;
             perspective: 1200px;
+            touch-action: pan-y;
+        }
+        @supports (height: 100dvh) {
+            #presentation { height: 100dvh; }
         }
 
         .slide {
@@ -1594,17 +1600,22 @@
         /* ── Tablet Landscape (1024px - 1279px) ── */
         @media (max-width: 1279px) {
             .slide-container { padding: 36px 40px 44px; }
-            .founder-box { flex-direction: column; gap: 28px; }
+            .founder-box { grid-template-columns: 1fr; gap: 28px; text-align: center; justify-items: center; }
             .founder-photo-frame { width: 200px; height: 200px; }
             .portfolio-card-7 { width: calc(33.33% - 16px); min-width: 200px; padding: 26px 18px 22px; }
             .map-display-frame { width: 90%; }
             .project-frame { width: 44%; }
+            .cairo-layout { grid-template-columns: 1fr; gap: 28px; }
+            .project-showcase-grid { grid-template-columns: 1fr; gap: 28px; }
+            .vision-grid { grid-template-columns: repeat(2, 1fr); }
+            .why-grid { grid-template-columns: repeat(2, 1fr); }
+            .milestones-grid { grid-template-columns: repeat(2, 1fr); }
         }
         
         /* ── Tablet Portrait (768px - 1023px) ── */
         @media (max-width: 1023px) {
             .slide-container { padding: 28px 28px 36px; }
-            .founder-box { flex-direction: column; gap: 24px; text-align: center; }
+            .founder-box { grid-template-columns: 1fr; gap: 24px; text-align: center; justify-items: center; }
             .founder-photo-frame { width: 180px; height: 180px; margin: 0 auto; }
             .portfolio-card-7 { width: calc(50% - 14px); min-width: 180px; padding: 22px 16px 20px; }
             .portfolio-card-7 h3 { font-size: 16px; }
@@ -1618,12 +1629,22 @@
             .slide:not(.s-intro)::after { width: 300px; height: 130px; }
             #custom-cursor-dot, #custom-cursor-ring { display: none !important; }
             body, a, button, .portfolio-card-7, .project-info-card, [onclick] { cursor: auto !important; }
+
+            /* Allow slides to scroll instead of clipping tall content on phones/tablets */
+            .slide-container {
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                align-items: center;
+                align-items: safe center;
+                scrollbar-width: none;
+            }
+            .slide-container::-webkit-scrollbar { display: none; }
         }
         
         /* ── Mobile Landscape & Large Phones (640px - 767px) ── */
         @media (max-width: 767px) {
             .slide-container { padding: 20px 18px 30px; }
-            .founder-box { flex-direction: column; gap: 16px; }
+            .founder-box { grid-template-columns: 1fr; gap: 16px; }
             .founder-photo-frame { width: 140px; height: 140px; }
             .portfolio-card-7 { width: 100%; min-width: unset; max-width: 100%; padding: 20px 16px 18px; }
             .portfolio-card-7 h3 { font-size: 15px; }
@@ -1636,11 +1657,35 @@
             .nav-arrow.prev { right: 10px; }
             #hud-progress-wrap { left: 15%; right: 15%; }
             .region-tag { padding: 4px 10px; font-size: 11px; }
-            .milestone-item { flex-direction: column; text-align: center; gap: 10px; }
+            .milestone-item { text-align: center; gap: 10px; }
             .mall-card, .vision-card { padding: 18px; }
             .slide:not(.s-intro)::after { width: 200px; height: 85px; bottom: 16px; left: 16px; }
             .stat-num { font-size: 54px !important; }
             .ambient-orb { display: none; }
+            .vision-grid, .why-grid, .milestones-grid, .malls-grid-2 { grid-template-columns: 1fr; }
+            .project-specs-list { grid-template-columns: 1fr; }
+
+            /* ── Performance: phones only — kill the effects that cause stutter ── */
+            /* backdrop-filter (frosted glass) is one of the heaviest paints on phone GPUs,
+               and this deck uses it on ~25 elements. Drop the blur, keep the tinted background. */
+            *, *::before, *::after {
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
+            }
+            /* Animating `filter: blur()` on every slide + every reveal element is very expensive
+               to composite; drop the blur step but keep the fade/slide motion. */
+            .slide, .slide.active, .slide.exiting,
+            [data-anim], .slide.active [data-anim] {
+                filter: none !important;
+            }
+            .slide, [data-anim] { will-change: transform, opacity; }
+            /* Desktop-only cursor spotlight — not used on touch, and was animating every frame. */
+            #mouse-glow, #custom-cursor-dot, #custom-cursor-ring { display: none !important; }
+            /* Trim the heaviest multi-layer shadows (cheaper to paint, same look at this size). */
+            .project-info-card, .mall-card, .vision-card, .why-card, .portfolio-card-7,
+            #area-modal-content {
+                box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45) !important;
+            }
         }
         
         /* ── Mobile Portrait (max 639px) ── */
@@ -2372,6 +2417,10 @@
 (function() {
     'use strict';
 
+    // Phones/tablets: skip desktop-only cursor-follow effects (perf — avoids two perpetual
+    // requestAnimationFrame loops that are pure overhead with no visible benefit on touch).
+    const isTouchDevice = window.matchMedia('(hover: none), (pointer: coarse)').matches;
+
     // ── Preloader Auto-Dismiss ──
     function dismissPreloader() {
         const p = document.getElementById('preloader');
@@ -2445,25 +2494,27 @@
         drawParticles();
     }
 
-    // ── Mouse Glow Spotlight ──
+    // ── Mouse Glow Spotlight (desktop only — see isTouchDevice) ──
     const mouseGlow = document.getElementById('mouse-glow');
-    let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2;
-    let currentX = mouseX, currentY = mouseY;
+    if (mouseGlow && isTouchDevice) {
+        mouseGlow.style.display = 'none';
+    } else if (mouseGlow) {
+        let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2;
+        let currentX = mouseX, currentY = mouseY;
 
-    window.addEventListener('mousemove', function(e){
-        mouseX = e.clientX; mouseY = e.clientY;
-    });
+        window.addEventListener('mousemove', function(e){
+            mouseX = e.clientX; mouseY = e.clientY;
+        });
 
-    function animateMouseGlow(){
-        currentX += (mouseX - currentX) * 0.08;
-        currentY += (mouseY - currentY) * 0.08;
-        if(mouseGlow){
+        function animateMouseGlow(){
+            currentX += (mouseX - currentX) * 0.08;
+            currentY += (mouseY - currentY) * 0.08;
             mouseGlow.style.left = currentX + 'px';
             mouseGlow.style.top  = currentY + 'px';
+            requestAnimationFrame(animateMouseGlow);
         }
-        requestAnimationFrame(animateMouseGlow);
+        animateMouseGlow();
     }
-    animateMouseGlow();
 
     // ── Dynamic Presentation Engine ──
     const presentation = document.getElementById('presentation');
@@ -2479,10 +2530,10 @@
     const DURATION = 650;
 
     
-    // --- PHASE 1 JS: Cursor ---
+    // --- PHASE 1 JS: Cursor (desktop only — see isTouchDevice) ---
     let cursorInitialized = false;
     function initAdvancedUI() {
-        if (cursorInitialized) return;
+        if (cursorInitialized || isTouchDevice) return;
         cursorInitialized = true;
         
         const cursorDot = document.createElement('div'); cursorDot.id = 'custom-cursor-dot';
@@ -2920,6 +2971,14 @@
         else prevSlide();
         setTimeout(function(){ wheelLock = false; }, 500);
     }, { passive: false });
+
+    // Mobile viewport height fix (iOS/Android address-bar resize) — fallback for browsers without dvh support
+    function setVH(){
+        document.documentElement.style.setProperty('--vh', (window.innerHeight * 0.01) + 'px');
+    }
+    setVH();
+    window.addEventListener('resize', setVH);
+    window.addEventListener('orientationchange', setVH);
 
     // Touch Swipe (Enhanced with velocity tracking)
     let touchStartX = 0, touchStartY = 0, touchStartTime = 0;
