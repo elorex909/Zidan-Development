@@ -87,10 +87,11 @@ function getPresentationData() {
 }
 
 async function savePresentationData(data) {
-    if (!data) return;
+    if (!data) return false;
     data.settings = data.settings || {};
     data.settings.lastUpdated = new Date().toISOString();
-    
+
+    let localOk = true;
     try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         if (broadcastSync) {
@@ -98,6 +99,7 @@ async function savePresentationData(data) {
         }
     } catch (e) {
         console.error('Storage save error:', e);
+        localOk = false;
     }
 
     const cloudCfg = getCloudConfig();
@@ -119,6 +121,11 @@ async function savePresentationData(data) {
             console.warn('Cloud push notice:', err);
         }
     }
+
+    // true only when the local save actually succeeded (e.g. false if the
+    // browser's storage quota was exceeded by a large uploaded file) —
+    // callers that add media items use this to detect & roll back failures.
+    return localOk;
 }
 
 async function fetchFromCloud() {
@@ -316,6 +323,68 @@ function buildDynamicPresentationHTML(data) {
             (s.specs || []).forEach(sp => {
                 spHtml += `<div class="spec-item"><span class="dot"></span> ${sp}</div>`;
             });
+            const galleryMedia = Array.isArray(s.media) ? s.media : [];
+            const coverUrl = s.photoUrl || 'images/building-1.jpeg';
+            const coverCap = s.photoCaption || s.heading || s.title || '';
+            // "All photos together, in order": cover photo first, then the gallery items.
+            const allMedia = [{ type: 'image', url: coverUrl, caption: coverCap }].concat(galleryMedia);
+            let imageBoxHtml = '';
+            if (allMedia.length <= 1) {
+                // No extra gallery items yet — behaves exactly like a normal single photo.
+                imageBoxHtml = `
+                        <div class="project-frame" data-zoom="${coverUrl}" data-caption="${coverCap}">
+                            <div class="shine-sweep"></div>
+                            <img src="${coverUrl}" alt="${s.title || ''}">
+                        </div>`;
+            } else {
+                const layerClass = ['pl3', 'pl2', 'pl1'];
+                const thumbs = allMedia.slice(0, 3).reverse(); // pl3 = furthest back, pl1 = front (first photo)
+                const clsOffset = layerClass.length - thumbs.length; // keeps the front slot (pl1) always filled, even with only 2 photos
+                let layersHtml = '';
+                thumbs.forEach((m, li) => {
+                    const cls = layerClass[clsOffset + li];
+                    if (m.type === 'video') {
+                        layersHtml += `<div class="pile-layer ${cls} is-video" style="background-image:url('${m.poster || ''}')"><div class="glass-play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>`;
+                    } else {
+                        layersHtml += `<div class="pile-layer ${cls}" style="background-image:url('${m.url}')"></div>`;
+                    }
+                });
+                imageBoxHtml = `
+                        <div class="project-frame is-pile" onclick="event.stopPropagation(); window.openMediaStack(${idx});" title="عرض كل الصور والفيديوهات">
+                            <div class="shine-sweep"></div>
+                            <div class="photo-pile">
+                                ${layersHtml}
+                                <div class="pile-count-badge"><svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>${allMedia.length} صورة</div>
+                            </div>
+                        </div>`;
+            }
+            // Second gallery entry point, under the spec bullets: a small fan of
+            // tilted photos shown in order (cover first), in addition to the
+            // main pile box above — same tap target, both open the full gallery.
+            let specsGalleryHtml = '';
+            if (allMedia.length > 1) {
+                const fanAngles = [-9, 6, -5, 8, -7, 4];
+                const maxFanCards = 5;
+                const fanItems = allMedia.slice(0, maxFanCards);
+                const extraCount = allMedia.length - fanItems.length;
+                let fanCardsHtml = '';
+                fanItems.forEach((m, fi) => {
+                    const angle = fanAngles[fi % fanAngles.length];
+                    const bg = m.type === 'video' ? (m.poster || '') : m.url;
+                    const isLastCard = (fi === fanItems.length - 1);
+                    const moreOverlay = (isLastCard && extraCount > 0) ? `<div class="fan-more">+${extraCount}</div>` : '';
+                    const playOverlay = (m.type === 'video' && !moreOverlay) ? `<div class="fan-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>` : '';
+                    fanCardsHtml += `<div class="fan-card" style="background-image:url('${bg}');transform:rotate(${angle}deg);z-index:${fi + 1};">${moreOverlay}${playOverlay}</div>`;
+                });
+                specsGalleryHtml = `
+                            <div class="specs-gallery-fan" onclick="event.stopPropagation(); window.openMediaStack(${idx});" title="عرض كل الصور والفيديوهات">
+                                ${fanCardsHtml}
+                            </div>
+                            <div class="specs-gallery-hint" onclick="event.stopPropagation(); window.openMediaStack(${idx});">
+                                <svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+                                <span>عرض كل الصور والفيديوهات (${allMedia.length})</span>
+                            </div>`;
+            }
             html += `
             <div class="slide s-project${activeClass}" data-index="${idx}" data-title="${s.title || s.heading || 'مشروع سكني'}">
                 <div class="slide-container">
@@ -330,12 +399,9 @@ function buildDynamicPresentationHTML(data) {
                             </div>
                             <p class="desc-text" style="font-size:16.5px;">${s.description || ''}</p>
                             <div class="project-specs-list">${spHtml}</div>
+                            ${specsGalleryHtml}
                         </div>
-                        <div class="project-image-box d3" data-anim>
-                            <div class="project-frame" data-zoom="${s.photoUrl || 'images/building-1.jpeg'}" data-caption="${s.photoCaption || s.heading || s.title || ''}">
-                                <div class="shine-sweep"></div>
-                                <img src="${s.photoUrl || 'images/building-1.jpeg'}" alt="${s.title || ''}">
-                            </div>
+                        <div class="project-image-box d3" data-anim>${imageBoxHtml}
                         </div>
                     </div>
                 </div>
