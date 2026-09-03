@@ -1122,10 +1122,19 @@ function addCurrentItem() {
     }
     
     // Auto-track all saves
+    // NOTE: must return the promise from the real save function — every
+    // caller (applyImg, addProjectMediaItem, ...) chains .then() off of
+    // savePresentationData(data) to know whether the save actually
+    // succeeded. Without the "return" here, that .then() was being called
+    // on undefined and silently crashing on every single save; the write
+    // itself still happened underneath so it went unnoticed, but the
+    // success toasts never fired and the new upload flow surfaces this as
+    // an explicit "فشل رفع الصورة" error.
     const _originalSaveData = window.savePresentationData;
     window.savePresentationData = function(d) {
-        _originalSaveData(d);
+        const p = _originalSaveData(d);
         pushHistory();
+        return p;
     };
     
     // Add keyboard shortcuts for Undo/Redo
