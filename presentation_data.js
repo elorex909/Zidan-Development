@@ -43,29 +43,6 @@ const STORAGE_KEY = 'zidan_presentation_live_data_v21';
 const AUTH_KEY = 'zidan_admin_auth_v1';
 const CLOUD_CONFIG_KEY = 'zidan_cloud_endpoint_config_v1';
 
-/**
- * Baked-in cloud config, shipped with the site's code (committed to GitHub).
- * This is what makes the gallery/media actually show up for real visitors:
- * previously the cloud endpoint only existed inside the ADMIN's own browser
- * (saved to localStorage from the dashboard's "☁️ ربط السحابة" modal), so a
- * stranger opening the GitHub-hosted site had no endpoint to pull data from
- * at all and always fell back to the empty/default data.
- *
- * apiKey here MUST be a jsonbin.io read-only Access Key (bins.read = true,
- * everything else false) — never the Master Key. It is publicly visible to
- * anyone who views the page source, so it should only ever be able to READ
- * the bin, not modify or delete it. The admin's own write-capable key (the
- * Master Key, or a read+write Access Key) is entered once in the dashboard's
- * Cloud modal and stays only in the admin's own browser localStorage — it is
- * never written into this file.
- */
-const DEFAULT_CLOUD_CONFIG = {
-    endpoint: "https://api.jsonbin.io/v3/b/6a995959da38895dfe3382e9",
-    apiKey: "$2a$10$gHLsiRrx0i73LU7/PNVZZufOl9P0f70b4t5Uoqe2ZjesMZHOhuSoO",
-    keyType: "access", // 'access' = read-only key, sent as X-Access-Key only. Admin keys saved from the dashboard default to 'master' and are sent as X-Master-Key.
-    autoSyncInterval: 8000
-};
-
 const DEFAULT_AUTH = {
     username: "admin",
     password: "Zidan@2026#Developments"
@@ -81,14 +58,9 @@ try {
 function getCloudConfig() {
     try {
         const stored = localStorage.getItem(CLOUD_CONFIG_KEY);
-        if (stored) {
-            const parsed = JSON.parse(stored);
-            if (parsed && parsed.endpoint && parsed.endpoint.startsWith('http')) return parsed;
-        }
+        if (stored) return JSON.parse(stored);
     } catch (e) {}
-    // No admin config saved in this browser (e.g. a first-time site visitor) —
-    // fall back to the read-only config baked into the shipped code.
-    return DEFAULT_CLOUD_CONFIG;
+    return { endpoint: "", apiKey: "", autoSyncInterval: 8000 };
 }
 
 function saveCloudConfig(cfg) {
@@ -131,10 +103,7 @@ async function savePresentationData(data) {
     }
 
     const cloudCfg = getCloudConfig();
-    // keyType 'access' means this is the baked-in, read-only default key
-    // (no admin write key has been configured in this browser yet) — it can
-    // never write, so don't bother making a request that's guaranteed to fail.
-    if (cloudCfg && cloudCfg.endpoint && cloudCfg.endpoint.startsWith('http') && cloudCfg.keyType !== 'access') {
+    if (cloudCfg && cloudCfg.endpoint && cloudCfg.endpoint.startsWith('http')) {
         try {
             const headers = { 'Content-Type': 'application/json' };
             if (cloudCfg.apiKey) {
@@ -166,15 +135,9 @@ async function fetchFromCloud() {
     try {
         const headers = {};
         if (cloudCfg.apiKey) {
-            if (cloudCfg.keyType === 'access') {
-                // Read-only key (e.g. the baked-in default) — must ONLY ever
-                // be sent as X-Access-Key, never as X-Master-Key.
-                headers['X-Access-Key'] = cloudCfg.apiKey;
-            } else {
-                headers['X-Master-Key'] = cloudCfg.apiKey;
-                headers['X-Access-Key'] = cloudCfg.apiKey;
-                headers['Authorization'] = 'Bearer ' + cloudCfg.apiKey;
-            }
+            headers['X-Master-Key'] = cloudCfg.apiKey;
+            headers['X-Access-Key'] = cloudCfg.apiKey;
+            headers['Authorization'] = 'Bearer ' + cloudCfg.apiKey;
         }
 
         const res = await fetch(cloudCfg.endpoint, { method: 'GET', headers: headers });
@@ -365,6 +328,35 @@ function buildDynamicPresentationHTML(data) {
             const coverCap = s.photoCaption || s.heading || s.title || '';
             // "All photos together, in order": cover photo first, then the gallery items.
             const allMedia = [{ type: 'image', url: coverUrl, caption: coverCap }].concat(galleryMedia);
+
+            // Builds the tilted pile-layer markup (up to 3 photos: the front
+            // cover photo plus the two most recent behind it). Each layer —
+            // front or peeking — is individually clickable: tapping any one of
+            // them zooms exactly that photo to the front (window.openPileZoom),
+            // with the rest of the pile still dimly visible behind it.
+            const buildPileLayers = (media) => {
+                const layerClass = ['pl3', 'pl2', 'pl1'];
+                const sliceLen = Math.min(3, media.length);
+                const thumbs = media.slice(0, 3).reverse(); // pl3 = furthest back, pl1 = front (first photo)
+                const clsOffset = layerClass.length - thumbs.length; // keeps the front slot (pl1) always filled, even with only 2 photos
+                let out = '';
+                thumbs.forEach((m, li) => {
+                    const cls = layerClass[clsOffset + li];
+                    const mediaIndex = (sliceLen - 1) - li; // this layer's position in allMedia, for openPileZoom
+                    const clickAttr = `onclick="event.stopPropagation(); window.openPileZoom(${idx}, ${mediaIndex});"`;
+                    if (m.type === 'video') {
+                        out += `<div class="pile-layer ${cls} is-video" style="background-image:url('${m.poster || ''}')" ${clickAttr}><div class="glass-play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>`;
+                    } else {
+                        out += `<div class="pile-layer ${cls}" style="background-image:url('${m.url}')" ${clickAttr}></div>`;
+                    }
+                });
+                return out;
+            };
+            // The count badge is a separate tap target from the photos beneath
+            // it: it opens the full grid ("view all"), while the photos zoom
+            // themselves forward.
+            const pileBadgeHtml = `<div class="pile-count-badge" onclick="event.stopPropagation(); window.openMediaStack(${idx});" title="عرض كل الصور والفيديوهات"><svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>${allMedia.length} صورة</div>`;
+
             let imageBoxHtml = '';
             if (allMedia.length <= 1) {
                 // No extra gallery items yet — behaves exactly like a normal single photo.
@@ -374,48 +366,28 @@ function buildDynamicPresentationHTML(data) {
                             <img src="${coverUrl}" alt="${s.title || ''}">
                         </div>`;
             } else {
-                const layerClass = ['pl3', 'pl2', 'pl1'];
-                const thumbs = allMedia.slice(0, 3).reverse(); // pl3 = furthest back, pl1 = front (first photo)
-                const clsOffset = layerClass.length - thumbs.length; // keeps the front slot (pl1) always filled, even with only 2 photos
-                let layersHtml = '';
-                thumbs.forEach((m, li) => {
-                    const cls = layerClass[clsOffset + li];
-                    if (m.type === 'video') {
-                        layersHtml += `<div class="pile-layer ${cls} is-video" style="background-image:url('${m.poster || ''}')"><div class="glass-play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>`;
-                    } else {
-                        layersHtml += `<div class="pile-layer ${cls}" style="background-image:url('${m.url}')"></div>`;
-                    }
-                });
                 imageBoxHtml = `
-                        <div class="project-frame is-pile" onclick="event.stopPropagation(); window.openMediaStack(${idx});" title="عرض كل الصور والفيديوهات">
+                        <div class="project-frame is-pile" onclick="event.stopPropagation(); window.openPileZoom(${idx}, 0);" title="عرض كل الصور والفيديوهات">
                             <div class="shine-sweep"></div>
                             <div class="photo-pile">
-                                ${layersHtml}
-                                <div class="pile-count-badge"><svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>${allMedia.length} صورة</div>
+                                ${buildPileLayers(allMedia)}
+                                ${pileBadgeHtml}
                             </div>
                         </div>`;
             }
-            // Second gallery entry point, under the spec bullets: a small fan of
-            // tilted photos shown in order (cover first), in addition to the
-            // main pile box above — same tap target, both open the full gallery.
+            // Second gallery entry point, under the spec bullets: the same
+            // stacked-photos pile as above, smaller, sitting under its own
+            // "عرض الصور والفيديوهات" caption — in addition to the main pile.
             let specsGalleryHtml = '';
             if (allMedia.length > 1) {
-                const fanAngles = [-9, 6, -5, 8, -7, 4];
-                const maxFanCards = 5;
-                const fanItems = allMedia.slice(0, maxFanCards);
-                const extraCount = allMedia.length - fanItems.length;
-                let fanCardsHtml = '';
-                fanItems.forEach((m, fi) => {
-                    const angle = fanAngles[fi % fanAngles.length];
-                    const bg = m.type === 'video' ? (m.poster || '') : m.url;
-                    const isLastCard = (fi === fanItems.length - 1);
-                    const moreOverlay = (isLastCard && extraCount > 0) ? `<div class="fan-more">+${extraCount}</div>` : '';
-                    const playOverlay = (m.type === 'video' && !moreOverlay) ? `<div class="fan-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>` : '';
-                    fanCardsHtml += `<div class="fan-card" style="background-image:url('${bg}');transform:rotate(${angle}deg);z-index:${fi + 1};">${moreOverlay}${playOverlay}</div>`;
-                });
                 specsGalleryHtml = `
-                            <div class="specs-gallery-fan" onclick="event.stopPropagation(); window.openMediaStack(${idx});" title="عرض كل الصور والفيديوهات">
-                                ${fanCardsHtml}
+                            <div class="specs-gallery-pile">
+                                <div class="project-frame is-pile" onclick="event.stopPropagation(); window.openPileZoom(${idx}, 0);" title="عرض كل الصور والفيديوهات">
+                                    <div class="photo-pile">
+                                        ${buildPileLayers(allMedia)}
+                                        ${pileBadgeHtml}
+                                    </div>
+                                </div>
                             </div>
                             <div class="specs-gallery-hint" onclick="event.stopPropagation(); window.openMediaStack(${idx});">
                                 <svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
