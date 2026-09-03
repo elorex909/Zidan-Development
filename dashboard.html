@@ -634,7 +634,6 @@
             <button class="rbtn" onclick="showAnalytics()">📊 إحصائيات الزوار</button>
             <div class="ribbon-sep"></div>
             <button class="rbtn" onclick="openModal('m-cloud')">☁️ ربط السحابة</button>
-            <button class="rbtn" onclick="openMigrateModal()">🧹 ترحيل الوسائط القديمة</button>
         </div>
         <div style="display:flex;align-items:center;gap:6px;">
             <a href="index.html" target="_blank" class="rbtn">👁️ عرض مباشر</a>
@@ -795,25 +794,6 @@
 <!-- Hidden inputs: project media (gallery images/videos) uploads -->
 <input type="file" id="proj-media-img-input" accept="image/*" style="display:none" onchange="handleProjectMediaImageUpload(event)">
 <input type="file" id="proj-media-vid-input" accept="video/*" style="display:none" onchange="handleProjectMediaVideoUpload(event)">
-
-<!-- Modal: Migrate legacy base64 media to Cloudinary -->
-<div class="modal" id="m-migrate">
-    <div class="modal-box">
-        <h2>🧹 ترحيل الوسائط القديمة</h2>
-        <p style="font-size:13px;color:#94a3b8;margin-bottom:14px;line-height:1.6;">
-            بعض الصور أو الفيديوهات اللي اتضافت قبل تفعيل الاستضافة السحابية لسه متخزنة كنص base64 طويل جوه بيانات العرض نفسها — وده اللي بيملأ مساحة تخزين المتصفح ويوقف الحفظ حتى لو الصورة الجديدة نفسها صغيرة. الأداة دي بترفع كل واحدة فيهم فعليًا وتستبدلها برابط قصير، من غير ما تفقد أي صورة أو فيديو.
-        </p>
-        <div id="migrate-summary" style="font-size:13px;color:#e2e8f0;margin-bottom:14px;line-height:1.7;">جارِ الفحص...</div>
-        <div class="upload-inline-progress" id="migrate-progress" style="display:none;">
-            <div class="uip-bar-track"><div class="uip-bar-fill" id="migrate-fill"></div></div>
-            <div class="uip-bar-label"><span id="migrate-text">جارِ الترحيل...</span><span id="migrate-pct">0%</span></div>
-        </div>
-        <div class="modal-footer">
-            <button class="rbtn" onclick="closeModal('m-migrate')">إغلاق</button>
-            <button class="rbtn primary" id="migrate-start-btn" onclick="startMigration()">🧹 ابدأ الترحيل</button>
-        </div>
-    </div>
-</div>
 
 <!-- Modal: Cloud -->
 <div class="modal" id="m-cloud">
@@ -1142,19 +1122,10 @@ function addCurrentItem() {
     }
     
     // Auto-track all saves
-    // NOTE: must return the promise from the real save function — every
-    // caller (applyImg, addProjectMediaItem, ...) chains .then() off of
-    // savePresentationData(data) to know whether the save actually
-    // succeeded. Without the "return" here, that .then() was being called
-    // on undefined and silently crashing on every single save; the write
-    // itself still happened underneath so it went unnoticed, but the
-    // success toasts never fired and the new upload flow surfaces this as
-    // an explicit "فشل رفع الصورة" error.
     const _originalSaveData = window.savePresentationData;
     window.savePresentationData = function(d) {
-        const p = _originalSaveData(d);
+        _originalSaveData(d);
         pushHistory();
-        return p;
     };
     
     // Add keyboard shortcuts for Undo/Redo
@@ -2135,109 +2106,6 @@ function removeMediaUploadingTile(tileId) {
     if (!tile) return;
     if (tile.dataset.previewUrl) { try { URL.revokeObjectURL(tile.dataset.previewUrl); } catch (e) {} }
     if (tile.parentNode) tile.parentNode.removeChild(tile);
-}
-
-// ── Legacy media migration ──
-// Older saves (from before Cloudinary was wired in) still hold full base64
-// strings inside `data` itself — a project photo, a founder photo, a gallery
-// item's url — anywhere. Those are what blow past the browser's localStorage
-// quota even when the newly-added item is tiny. This walks the whole `data`
-// tree generically (no need to know every field name), re-uploads each
-// base64 blob it finds to Cloudinary, and swaps the field for the resulting
-// short URL — same uploadToCloudinary() helper the live upload flow uses.
-var _migrateRefs = [];
-
-function findLegacyMediaRefs(node, path, refs) {
-    if (node === null || node === undefined) return;
-    if (typeof node === 'string') {
-        if (node.indexOf('data:image') === 0 || node.indexOf('data:video') === 0) {
-            refs.push({ path: path.slice(), value: node });
-        }
-        return;
-    }
-    if (Array.isArray(node)) {
-        node.forEach(function(item, i){ findLegacyMediaRefs(item, path.concat(i), refs); });
-        return;
-    }
-    if (typeof node === 'object') {
-        Object.keys(node).forEach(function(k){ findLegacyMediaRefs(node[k], path.concat(k), refs); });
-    }
-}
-
-function setAtPath(obj, path, val) {
-    var cur = obj;
-    for (var i = 0; i < path.length - 1; i++) cur = cur[path[i]];
-    cur[path[path.length - 1]] = val;
-}
-
-function openMigrateModal() {
-    _migrateRefs = [];
-    findLegacyMediaRefs(data, [], _migrateRefs);
-    var summaryEl = document.getElementById('migrate-summary');
-    var startBtn = document.getElementById('migrate-start-btn');
-    if (_migrateRefs.length === 0) {
-        summaryEl.textContent = '✅ مفيش أي صور أو فيديوهات قديمة (base64) — كله بيستخدم الاستضافة السحابية بالفعل.';
-        if (startBtn) startBtn.style.display = 'none';
-    } else {
-        var totalKB = 0;
-        _migrateRefs.forEach(function(r){ totalKB += Math.ceil(r.value.length * 0.75 / 1024); });
-        var totalMB = (totalKB / 1024).toFixed(1);
-        summaryEl.textContent = 'لقينا ' + _migrateRefs.length + ' صورة/فيديو قديم متخزن كنص جوه البيانات (~' + totalMB + ' ميجا تقريبًا). اضغط "ابدأ الترحيل" علشان نرفعهم للاستضافة ونستبدلهم بروابط قصيرة — من غير ما نلمس أي حاجة تانية.';
-        if (startBtn) startBtn.style.display = 'inline-flex';
-    }
-    openModal('m-migrate');
-}
-
-async function startMigration() {
-    var startBtn = document.getElementById('migrate-start-btn');
-    var progWrap = document.getElementById('migrate-progress');
-    var fillEl = document.getElementById('migrate-fill');
-    var pctEl = document.getElementById('migrate-pct');
-    var textEl = document.getElementById('migrate-text');
-    var summaryEl = document.getElementById('migrate-summary');
-
-    if (startBtn) { startBtn.disabled = true; }
-    if (progWrap) progWrap.style.display = 'block';
-
-    var total = _migrateRefs.length;
-    var successCount = 0;
-    var failed = [];
-
-    for (var i = 0; i < total; i++) {
-        var ref = _migrateRefs[i];
-        if (textEl) textEl.textContent = 'جارِ ترحيل ' + (i + 1) + ' من ' + total + '...';
-        if (fillEl) fillEl.style.width = '0%';
-        if (pctEl) pctEl.textContent = '0%';
-        try {
-            var resourceType = ref.value.indexOf('data:video') === 0 ? 'video' : 'image';
-            var blob = await (await fetch(ref.value)).blob();
-            var secureUrl = await uploadToCloudinary(blob, resourceType, function(pct){
-                if (fillEl) fillEl.style.width = pct + '%';
-                if (pctEl) pctEl.textContent = pct + '%';
-            });
-            setAtPath(data, ref.path, secureUrl);
-            successCount++;
-        } catch (err) {
-            failed.push(ref.path.join('.') + ': ' + err);
-        }
-    }
-
-    renderCanvas();
-    var ok = await savePresentationData(data);
-
-    if (progWrap) progWrap.style.display = 'none';
-    if (startBtn) { startBtn.disabled = false; startBtn.style.display = 'none'; }
-
-    if (failed.length === 0) {
-        summaryEl.textContent = '✅ تم ترحيل ' + successCount + ' عنصر بنجاح — مساحة التخزين المستخدمة قلّت كتير.';
-        toast('✅ تم ترحيل الوسائط القديمة بنجاح!');
-    } else {
-        summaryEl.textContent = '⚠️ اتنقل ' + successCount + ' من ' + total + ' بنجاح، وفشل ' + failed.length + ' (ممكن يكونوا اتحفظوا ناقصين قبل كده). التفاصيل: ' + failed.slice(0, 3).join(' | ') + (failed.length > 3 ? ' ...' : '');
-        toast('⚠️ اكتمل الترحيل جزئيًا، راجع التفاصيل جوه النافذة.');
-    }
-    if (!ok) {
-        toast('⚠️ الترحيل خلص لكن الحفظ المحلي واجه مشكلة — جرّب "💾 حفظ" يدويًا.');
-    }
 }
 
 function handleUpload(e) {
