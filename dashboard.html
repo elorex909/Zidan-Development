@@ -265,33 +265,22 @@
             background: rgba(0,0,0,0.6); color: #fff; outline: none; border: none; text-align: center;
         }
         .media-mgr-empty { color: #52525b; font-size: 12px; padding: 10px 0; }
-
-        /* Upload progress — real network progress while a file is in
-           flight to the media host, styled as frosted glass to match the
-           rest of the panel (deliberately not gold — this is a transient
-           in-progress state, not a brand moment). */
-        .upload-glass-overlay {
-            position: absolute; inset: 0; z-index: 5;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
-            background: rgba(8, 9, 12, 0.5);
-            backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+        .media-mgr-item.mg-uploading {
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(255,255,255,0.04);
         }
-        .upload-glass-ring { position: relative; width: 44px; height: 44px; }
-        .upload-glass-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-        .upload-glass-ring circle { fill: none; stroke-width: 4; }
-        .upload-glass-ring .ring-bg { stroke: rgba(255,255,255,0.18); }
-        .upload-glass-ring .ring-fg { stroke: rgba(255,255,255,0.85); stroke-linecap: round; transition: stroke-dashoffset 0.15s linear; }
-        .upload-glass-pct { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 10.5px; font-weight: 800; color: #fff; }
-        .upload-glass-label { font-size: 9.5px; color: #e2e8f0; font-weight: 700; text-align: center; padding: 0 6px; }
-
-        .upload-inline-progress {
-            margin-top: 10px; padding: 10px 12px; border-radius: 10px;
-            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+        .mg-upload-fill {
+            position: absolute; left: 0; right: 0; bottom: 0; height: 0%;
+            background: linear-gradient(to top, rgba(255,255,255,0.22), rgba(255,255,255,0.05));
             backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            border-top: 1px solid rgba(255,255,255,0.25);
+            transition: height 0.2s ease-out;
         }
-        .uip-bar-track { width: 100%; height: 7px; border-radius: 20px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); overflow: hidden; }
-        .uip-bar-fill { height: 100%; width: 0%; border-radius: 20px; background: rgba(255,255,255,0.75); transition: width 0.15s linear; }
-        .uip-bar-label { display: flex; justify-content: space-between; font-size: 11px; color: #cbd5e1; margin-top: 6px; font-weight: 600; }
+        .mg-upload-pct {
+            position: relative; z-index: 2; font-size: 14px; font-weight: 800; color: #fff;
+            text-shadow: 0 1px 6px rgba(0,0,0,0.7); font-variant-numeric: tabular-nums;
+        }
+        .mg-upload-icon { position: absolute; top: 6px; right: 6px; font-size: 12px; opacity: 0.65; z-index: 2; }
 
         /* White card variant for founder */
         .c-card-white {
@@ -781,10 +770,6 @@
         <div class="preset-grid" id="preset-grid"></div>
         <label>أو ارفع صورة من جهازك:</label>
         <input type="file" class="modal-input" accept="image/*" onchange="handleUpload(event)" style="padding:8px;">
-        <div class="upload-inline-progress" id="m-img-upload-progress" style="display:none;">
-            <div class="uip-bar-track"><div class="uip-bar-fill" id="m-img-upload-fill"></div></div>
-            <div class="uip-bar-label"><span id="m-img-upload-text">جارِ الرفع...</span><span id="m-img-upload-pct">0%</span></div>
-        </div>
         <div class="modal-footer">
             <button class="rbtn" onclick="closeModal('m-img')">إغلاق</button>
         </div>
@@ -1146,6 +1131,21 @@ function addCurrentItem() {
     buildPresets();
     renderSidebar();
     renderCanvas();
+    // Pull whatever's actually live on the cloud (if Cloud Sync is
+    // configured) so the studio starts from the current real state —
+    // not a stale local copy — before any edits are made here. Important
+    // once you're adding media from more than one device/browser.
+    if (typeof fetchFromCloud === 'function') {
+        fetchFromCloud().then(function(cloudData){
+            if (cloudData) {
+                data = cloudData;
+                pushHistory();
+                buildPresets();
+                renderSidebar();
+                renderCanvas();
+            }
+        });
+    }
 }
 
 // ── Sidebar ──
@@ -1729,32 +1729,6 @@ function renderCanvas() {
         var spHtml = ''; (s.specs||[]).forEach(function(sp, si){
             spHtml += '<div class="spec-item"><span contenteditable="true" onblur="uspec('+si+',this.innerText)">'+sp+'</span><button class="spec-del" onclick="rspec('+si+')">&times;</button></div>';
         });
-        var mediaArr = s.media || [];
-        var mmHtml = '';
-        if (mediaArr.length === 0) {
-            mmHtml = '<div class="media-mgr-empty">لا توجد صور أو فيديوهات مضافة لهذا المشروع بعد.</div>';
-        } else {
-            mmHtml = '<div class="media-mgr-grid">';
-            mediaArr.forEach(function(m, mi){
-                var cap = (m.caption||'').replace(/"/g,'&quot;');
-                if (m.type === 'video') {
-                    mmHtml += '<div class="media-mgr-item">' +
-                        '<video src="'+m.url+'" muted preload="metadata"></video>' +
-                        '<span class="mm-badge">🎬 فيديو</span>' +
-                        '<button class="mm-del" title="حذف" onclick="removeProjectMedia('+mi+')">&times;</button>' +
-                        '<input class="mm-cap" placeholder="وصف الفيديو" value="'+cap+'" onblur="updateProjectMediaCaption('+mi+',this.value)">' +
-                        '</div>';
-                } else {
-                    mmHtml += '<div class="media-mgr-item">' +
-                        '<img src="'+m.url+'" alt="'+cap+'">' +
-                        '<span class="mm-badge">🖼️ صورة</span>' +
-                        '<button class="mm-del" title="حذف" onclick="removeProjectMedia('+mi+')">&times;</button>' +
-                        '<input class="mm-cap" placeholder="وصف الصورة" value="'+cap+'" onblur="updateProjectMediaCaption('+mi+',this.value)">' +
-                        '</div>';
-                }
-            });
-            mmHtml += '</div>';
-        }
         html = '<div class="g2">' +
             '<div class="c-card">' +
             '<div contenteditable="true" class="c-badge" onblur="uf(\'badge\',this.innerText)">'+(s.badge||'')+'</div>' +
@@ -1763,13 +1737,7 @@ function renderCanvas() {
             '<div contenteditable="true" class="c-desc" onblur="uf(\'description\',this.innerText)">'+(s.description||'')+'</div>' +
             '<div style="border-top:1px solid rgba(255,255,255,0.1);padding-top:12px;"><div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:8px;">المواصفات:</div>' +
             '<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;">'+spHtml+'</div></div>' +
-            '<div class="media-mgr-box">' +
-            '<div class="media-mgr-title">معرض صور وفيديوهات المشروع (يظهر كمجمع صور قابل للتكبير في صفحة العرض):</div>' +
-            '<div class="media-mgr-actions">' +
-            '<button onclick="document.getElementById(\'proj-media-img-input\').click()">🖼️ + إضافة صورة</button>' +
-            '<button onclick="document.getElementById(\'proj-media-vid-input\').click()">🎬 + إضافة فيديو</button>' +
-            '<button onclick="addProjectMediaVideoUrl()">🔗 + فيديو برابط</button>' +
-            '</div>' + mmHtml + '</div>' +
+            buildMediaMgrBoxHtml(s) +
             '</div>' +
             '<div style="text-align:center"><div class="img-wrap" onclick="openModal(\'m-img\')">' +
             '<img src="'+(s.photoUrl||'images/building-1.jpeg')+'">' +
@@ -1973,9 +1941,8 @@ function applyImg(src) {
 }
 
 // Shrinks & re-encodes an uploaded image on a canvas before it's turned into
-// a Blob — keeps phone-camera photos (often several MB each) small and fast
-// to upload. Resolves to a Blob (not a data URL): the file is uploaded to
-// real media hosting as binary, never embedded as base64 text.
+// a data URL — keeps phone-camera photos (often several MB each) small
+// enough that many of them can actually fit in the browser's local storage.
 function compressImageFile(file, maxDim, quality) {
     maxDim = maxDim || 1600;
     quality = quality || 0.82;
@@ -1993,46 +1960,56 @@ function compressImageFile(file, maxDim, quality) {
                     canvas.width = cw; canvas.height = ch;
                     var ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, cw, ch);
-                    canvas.toBlob(function(blob){
-                        resolve(blob || file); // fall back to the original file if canvas fails
-                    }, 'image/jpeg', quality);
+                    resolve(canvas.toDataURL('image/jpeg', quality));
                 } catch (e) {
-                    resolve(file); // fall back to the original file if canvas fails
+                    resolve(evt.target.result); // fall back to the original if canvas fails
                 }
             };
-            img.onerror = function(){ resolve(file); };
+            img.onerror = function(){ resolve(evt.target.result); };
             img.src = evt.target.result;
         };
-        reader.onerror = function(){ resolve(file); };
+        reader.onerror = function(){ resolve(null); };
         reader.readAsDataURL(file);
     });
 }
 
-// ── Media hosting (Cloudinary, unsigned direct upload from the browser) ──
-// Only a short secure_url ever gets written into the presentation JSON /
-// jsonbin Bin — never the file itself. That's what keeps the Bin small no
-// matter how many images/videos get added (jsonbin's free plan caps a Bin
-// around ~1MB, and base64 media used to blow past that silently), and it's
-// what makes a real upload progress percentage possible to show.
+function handleUpload(e) {
+    var file = e.target.files && e.target.files[0];
+    if (!file) return;
+    compressImageFile(file, 1800, 0.85).then(function(dataUrl){
+        if (dataUrl) applyImg(dataUrl);
+    });
+}
+
+// ── Project media manager (gallery images/videos on 'project' slides) ──
+//
+// Photos/videos added here are uploaded as real files to Cloudinary and only
+// the short hosted URL is stored in the slide's data — NOT the file itself.
+// That's what keeps the presentation's JSON (and therefore both localStorage
+// and the cloud sync bin) tiny no matter how many photos/videos get added;
+// previously each file was embedded as base64 text directly in the data,
+// which quickly blew past the cloud bin's ~1MB size limit and silently
+// failed to sync.
 var CLOUDINARY_CLOUD_NAME = 'yg6qvrko';
 var CLOUDINARY_UPLOAD_PRESET = 'dtwoeuyr';
 
-function uploadToCloudinary(fileOrBlob, resourceType, onProgress) {
+function uploadToCloudinary(file, resourceType, onProgress) {
     return new Promise(function(resolve, reject){
         var url = 'https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD_NAME + '/' + resourceType + '/upload';
         var fd = new FormData();
-        fd.append('file', fileOrBlob);
+        fd.append('file', file);
         fd.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
 
         var xhr = new XMLHttpRequest();
         xhr.open('POST', url, true);
-
         xhr.upload.onprogress = function(evt){
-            if (onProgress && evt.lengthComputable) {
-                onProgress(Math.round((evt.loaded / evt.total) * 100));
+            if (evt.lengthComputable && onProgress) {
+                // Cap the visual fill at 99% while still in flight — the
+                // last 1% completes once Cloudinary actually confirms the
+                // upload, which avoids the bar looking "done" too early.
+                onProgress(Math.max(1, Math.min(99, Math.round((evt.loaded / evt.total) * 100))));
             }
         };
-
         xhr.onload = function(){
             var res = null;
             try { res = JSON.parse(xhr.responseText); } catch (e) {}
@@ -2040,141 +2017,139 @@ function uploadToCloudinary(fileOrBlob, resourceType, onProgress) {
                 if (onProgress) onProgress(100);
                 resolve(res.secure_url);
             } else {
-                reject((res && res.error && res.error.message) || 'فشل الرفع (' + xhr.status + ')');
+                reject((res && res.error && res.error.message) || ('فشل الرفع (كود ' + xhr.status + ')'));
             }
         };
-        xhr.onerror = function(){ reject('تعذّر الاتصال بخدمة الاستضافة، تأكد من الإنترنت.'); };
+        xhr.onerror = function(){ reject('تعذر الاتصال بخدمة استضافة الوسائط. تأكد من اتصال الإنترنت.'); };
         xhr.send(fd);
     });
 }
 
-// Glass progress ring — same frosted-glass language as the rest of the
-// dashboard (translucent white + blur), not a brand/gold treatment, since
-// this is a transient loading state rather than a piece of the identity.
-function glassUploadOverlayHtml(ringId, label) {
-    var C = 119.4; // 2 * PI * r(19)
-    return '<div class="upload-glass-overlay" id="' + ringId + '">' +
-        '<div class="upload-glass-ring">' +
-        '<svg viewBox="0 0 46 46">' +
-        '<circle class="ring-bg" cx="23" cy="23" r="19"></circle>' +
-        '<circle class="ring-fg" cx="23" cy="23" r="19" stroke-dasharray="' + C + '" stroke-dashoffset="' + C + '"></circle>' +
-        '</svg>' +
-        '<div class="upload-glass-pct">0%</div>' +
-        '</div>' +
-        '<div class="upload-glass-label">' + (label || 'جارِ الرفع...') + '</div>' +
-        '</div>';
-}
+// In-flight uploads, tracked by object reference to the slide they belong
+// to (slides don't have a stable id — activeIdx can shift while an upload
+// is still running, e.g. if the admin switches slides mid-upload).
+var pendingUploads = []; // { tempId, slideRef, type, progress }
 
-function updateGlassUploadOverlay(ringId, pct) {
-    var C = 119.4;
-    var el = document.getElementById(ringId);
-    if (!el) return;
-    var fg = el.querySelector('.ring-fg');
-    var pctEl = el.querySelector('.upload-glass-pct');
-    if (fg) fg.style.strokeDashoffset = String(C * (1 - pct / 100));
-    if (pctEl) pctEl.textContent = pct + '%';
-}
-
-// Drops a temporary "uploading" tile into the project media grid — an
-// instant local preview (via a blob URL) plus the glass progress ring —
-// so the admin sees the file's own thumbnail filling up in real time
-// instead of a generic spinner. Swapped out for the real item on success.
-function insertMediaUploadingTile(tileId, previewUrl, type) {
-    var box = document.querySelector('#canvas .media-mgr-box');
-    if (!box) return;
-    var grid = box.querySelector('.media-mgr-grid');
-    if (!grid) {
-        var empty = box.querySelector('.media-mgr-empty');
-        grid = document.createElement('div');
-        grid.className = 'media-mgr-grid';
-        if (empty && empty.parentNode) empty.parentNode.replaceChild(grid, empty);
-        else box.appendChild(grid);
+function removePendingUpload(tempId) {
+    for (var i = 0; i < pendingUploads.length; i++) {
+        if (pendingUploads[i].tempId === tempId) { pendingUploads.splice(i, 1); break; }
     }
-    var tile = document.createElement('div');
-    tile.className = 'media-mgr-item';
-    tile.id = tileId + '-tile';
-    tile.dataset.previewUrl = previewUrl;
-    var previewTag = type === 'video'
-        ? '<video src="' + previewUrl + '" muted></video>'
-        : '<img src="' + previewUrl + '" alt="">';
-    tile.innerHTML = previewTag + glassUploadOverlayHtml(tileId, type === 'video' ? 'جارِ رفع الفيديو...' : 'جارِ رفع الصورة...');
-    grid.appendChild(tile);
 }
 
-function removeMediaUploadingTile(tileId) {
-    var tile = document.getElementById(tileId + '-tile');
-    if (!tile) return;
-    if (tile.dataset.previewUrl) { try { URL.revokeObjectURL(tile.dataset.previewUrl); } catch (e) {} }
-    if (tile.parentNode) tile.parentNode.removeChild(tile);
+function updatePendingProgress(tempId, pct) {
+    var tile = document.getElementById('mg-pending-' + tempId);
+    if (!tile) return; // admin navigated away from this slide — nothing to update
+    var fill = tile.querySelector('.mg-upload-fill');
+    var label = tile.querySelector('.mg-upload-pct');
+    if (fill) fill.style.height = pct + '%';
+    if (label) label.textContent = pct + '%';
 }
 
-function handleUpload(e) {
-    var file = e.target.files && e.target.files[0];
-    if (!file) return;
-    e.target.value = '';
-
-    var progWrap = document.getElementById('m-img-upload-progress');
-    var fillEl = document.getElementById('m-img-upload-fill');
-    var pctEl = document.getElementById('m-img-upload-pct');
-    var textEl = document.getElementById('m-img-upload-text');
-    if (progWrap) progWrap.style.display = 'block';
-    if (fillEl) fillEl.style.width = '0%';
-    if (pctEl) pctEl.textContent = '0%';
-    if (textEl) textEl.textContent = 'جارِ ضغط الصورة...';
-
-    compressImageFile(file, 1800, 0.85).then(function(blob){
-        if (textEl) textEl.textContent = 'جارِ رفع الصورة...';
-        uploadToCloudinary(blob, 'image', function(pct){
-            if (fillEl) fillEl.style.width = pct + '%';
-            if (pctEl) pctEl.textContent = pct + '%';
-        }).then(function(secureUrl){
-            if (progWrap) progWrap.style.display = 'none';
-            applyImg(secureUrl);
-        }).catch(function(err){
-            if (progWrap) progWrap.style.display = 'none';
-            toast('⚠️ فشل رفع الصورة: ' + err);
+// Builds the whole "معرض صور وفيديوهات المشروع" box for a project slide,
+// including any uploads still in progress. Used both by the main slide
+// render and by refreshMediaMgrBox() so a live upload's progress tile can
+// be updated without re-rendering the entire canvas (which would lose
+// focus/cursor position in whatever field the admin is editing).
+function buildMediaMgrBoxHtml(s) {
+    var mediaArr = s.media || [];
+    var pending = pendingUploads.filter(function(p){ return p.slideRef === s; });
+    var mmHtml = '';
+    if (mediaArr.length === 0 && pending.length === 0) {
+        mmHtml = '<div class="media-mgr-empty">لا توجد صور أو فيديوهات مضافة لهذا المشروع بعد.</div>';
+    } else {
+        mmHtml = '<div class="media-mgr-grid">';
+        mediaArr.forEach(function(m, mi){
+            var cap = (m.caption||'').replace(/"/g,'&quot;');
+            if (m.type === 'video') {
+                mmHtml += '<div class="media-mgr-item">' +
+                    '<video src="'+m.url+'" muted preload="metadata"></video>' +
+                    '<span class="mm-badge">🎬 فيديو</span>' +
+                    '<button class="mm-del" title="حذف" onclick="removeProjectMedia('+mi+')">&times;</button>' +
+                    '<input class="mm-cap" placeholder="وصف الفيديو" value="'+cap+'" onblur="updateProjectMediaCaption('+mi+',this.value)">' +
+                    '</div>';
+            } else {
+                mmHtml += '<div class="media-mgr-item">' +
+                    '<img src="'+m.url+'" alt="'+cap+'">' +
+                    '<span class="mm-badge">🖼️ صورة</span>' +
+                    '<button class="mm-del" title="حذف" onclick="removeProjectMedia('+mi+')">&times;</button>' +
+                    '<input class="mm-cap" placeholder="وصف الصورة" value="'+cap+'" onblur="updateProjectMediaCaption('+mi+',this.value)">' +
+                    '</div>';
+            }
         });
-    });
+        pending.forEach(function(p){
+            mmHtml += '<div class="media-mgr-item mg-uploading" id="mg-pending-'+p.tempId+'">' +
+                '<span class="mg-upload-icon">'+(p.type==='video'?'🎬':'🖼️')+'</span>' +
+                '<div class="mg-upload-fill" style="height:'+p.progress+'%"></div>' +
+                '<span class="mg-upload-pct">'+p.progress+'%</span>' +
+                '</div>';
+        });
+        mmHtml += '</div>';
+    }
+    return '<div class="media-mgr-box" id="mediaMgrBox">' +
+        '<div class="media-mgr-title">معرض صور وفيديوهات المشروع (يظهر كمجمع صور قابل للتكبير في صفحة العرض):</div>' +
+        '<div class="media-mgr-actions">' +
+        '<button onclick="document.getElementById(\'proj-media-img-input\').click()">🖼️ + إضافة صورة</button>' +
+        '<button onclick="document.getElementById(\'proj-media-vid-input\').click()">🎬 + إضافة فيديو</button>' +
+        '<button onclick="addProjectMediaVideoUrl()">🔗 + فيديو برابط</button>' +
+        '</div>' + mmHtml + '</div>';
 }
 
-// ── Project media manager (gallery images/videos on 'project' slides) ──
+// Re-renders only the media box in place (not the whole canvas) so upload
+// progress ticks stay smooth and don't disturb any other field the admin
+// might be editing at the same time.
+function refreshMediaMgrBox() {
+    var s = data.slides[activeIdx];
+    if (!s || s.type !== 'project') return;
+    var box = document.getElementById('mediaMgrBox');
+    if (!box) return;
+    box.outerHTML = buildMediaMgrBoxHtml(s);
+}
+
 function handleProjectMediaImageUpload(e) {
     var file = e.target.files && e.target.files[0];
-    if (!file) return;
     e.target.value = '';
-
-    var tileId = 'mm-up-' + Date.now();
-    insertMediaUploadingTile(tileId, URL.createObjectURL(file), 'image');
-
-    compressImageFile(file, 1600, 0.82).then(function(blob){
-        uploadToCloudinary(blob, 'image', function(pct){
-            updateGlassUploadOverlay(tileId, pct);
-        }).then(function(secureUrl){
-            removeMediaUploadingTile(tileId);
-            addProjectMediaItem('image', secureUrl, '');
-        }).catch(function(err){
-            removeMediaUploadingTile(tileId);
-            toast('⚠️ فشل رفع الصورة: ' + err);
-        });
-    });
+    if (!file) return;
+    startProjectMediaUpload(file, 'image');
 }
 
 function handleProjectMediaVideoUpload(e) {
     var file = e.target.files && e.target.files[0];
-    if (!file) return;
     e.target.value = '';
+    if (!file) return;
+    startProjectMediaUpload(file, 'video');
+}
 
-    var tileId = 'mm-up-' + Date.now();
-    insertMediaUploadingTile(tileId, URL.createObjectURL(file), 'video');
+function startProjectMediaUpload(file, type) {
+    var s = data.slides[activeIdx];
+    if (!s || s.type !== 'project') return;
+    var tempId = 't' + Date.now() + Math.round(Math.random()*100000);
 
-    uploadToCloudinary(file, 'video', function(pct){
-        updateGlassUploadOverlay(tileId, pct);
-    }).then(function(secureUrl){
-        removeMediaUploadingTile(tileId);
-        addProjectMediaItem('video', secureUrl, '');
+    pendingUploads.push({ tempId: tempId, slideRef: s, type: type, progress: 0 });
+    refreshMediaMgrBox();
+
+    var uploadPromise;
+    try {
+        uploadPromise = uploadToCloudinary(file, type === 'video' ? 'video' : 'image', function(pct){
+            updatePendingProgress(tempId, pct);
+        });
+    } catch (syncErr) {
+        removePendingUpload(tempId);
+        if (data.slides[activeIdx] === s) refreshMediaMgrBox();
+        toast('⚠️ تعذر بدء الرفع: ' + (syncErr && syncErr.message ? syncErr.message : syncErr));
+        return;
+    }
+
+    uploadPromise.then(function(secureUrl){
+        removePendingUpload(tempId);
+        s.media = s.media || [];
+        s.media.push({ type: type, url: secureUrl, caption: '' });
+        savePresentationData(data);
+        if (data.slides[activeIdx] === s) refreshMediaMgrBox();
+        toast(type === 'video' ? 'تمت إضافة الفيديو للمعرض.' : 'تمت إضافة الصورة للمعرض.');
     }).catch(function(err){
-        removeMediaUploadingTile(tileId);
-        toast('⚠️ فشل رفع الفيديو: ' + err);
+        removePendingUpload(tempId);
+        if (data.slides[activeIdx] === s) refreshMediaMgrBox();
+        toast('⚠️ ' + (typeof err === 'string' ? err : 'فشل رفع الملف، حاول تاني.'));
     });
 }
 
