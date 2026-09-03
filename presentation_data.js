@@ -34,9 +34,31 @@ function zdVideoPosterUrl(m) {
     const optimized = zdCloudinaryVideoUrl(m.url);
     return optimized.replace(/\.[a-zA-Z0-9]+(\?.*)?$/, '.jpg$1');
 }
+// Belt-and-suspenders thumbnail fix: the Cloudinary poster URL above is a
+// nice instant preview, but it only works for Cloudinary-hosted videos and
+// depends on that URL guess being right. This forces the actual <video>
+// tag to decode and paint a real frame itself — works for ANY video,
+// wherever it's hosted, which is what a plain "poster" attribute can't
+// guarantee on its own. Call it right after injecting any HTML that
+// contains preview videos (marked with data-thumb).
+function zdPrimeVideoThumbnails(container) {
+    if (!container || !container.querySelectorAll) return;
+    container.querySelectorAll('video[data-thumb]').forEach(function (v) {
+        function seek() {
+            try {
+                if (v.readyState >= 1 && isFinite(v.duration) && v.duration > 0) {
+                    v.currentTime = Math.min(0.1, v.duration / 2);
+                }
+            } catch (e) {}
+        }
+        if (v.readyState >= 1) seek();
+        else v.addEventListener('loadedmetadata', seek, { once: true });
+    });
+}
 if (typeof window !== 'undefined') {
     window.zdCloudinaryVideoUrl = zdCloudinaryVideoUrl;
     window.zdVideoPosterUrl = zdVideoPosterUrl;
+    window.zdPrimeVideoThumbnails = zdPrimeVideoThumbnails;
 }
 
 const DEFAULT_PRESENTATION_DATA = {
