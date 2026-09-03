@@ -266,6 +266,33 @@
         }
         .media-mgr-empty { color: #52525b; font-size: 12px; padding: 10px 0; }
 
+        /* Upload progress — real network progress while a file is in
+           flight to the media host, styled as frosted glass to match the
+           rest of the panel (deliberately not gold — this is a transient
+           in-progress state, not a brand moment). */
+        .upload-glass-overlay {
+            position: absolute; inset: 0; z-index: 5;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+            background: rgba(8, 9, 12, 0.5);
+            backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+        }
+        .upload-glass-ring { position: relative; width: 44px; height: 44px; }
+        .upload-glass-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+        .upload-glass-ring circle { fill: none; stroke-width: 4; }
+        .upload-glass-ring .ring-bg { stroke: rgba(255,255,255,0.18); }
+        .upload-glass-ring .ring-fg { stroke: rgba(255,255,255,0.85); stroke-linecap: round; transition: stroke-dashoffset 0.15s linear; }
+        .upload-glass-pct { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 10.5px; font-weight: 800; color: #fff; }
+        .upload-glass-label { font-size: 9.5px; color: #e2e8f0; font-weight: 700; text-align: center; padding: 0 6px; }
+
+        .upload-inline-progress {
+            margin-top: 10px; padding: 10px 12px; border-radius: 10px;
+            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+        }
+        .uip-bar-track { width: 100%; height: 7px; border-radius: 20px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); overflow: hidden; }
+        .uip-bar-fill { height: 100%; width: 0%; border-radius: 20px; background: rgba(255,255,255,0.75); transition: width 0.15s linear; }
+        .uip-bar-label { display: flex; justify-content: space-between; font-size: 11px; color: #cbd5e1; margin-top: 6px; font-weight: 600; }
+
         /* White card variant for founder */
         .c-card-white {
             background: linear-gradient(145deg, #ffffff, #f1f5f9); border-radius: 20px; padding: 34px; color: #000000; font-weight: 700;
@@ -754,6 +781,10 @@
         <div class="preset-grid" id="preset-grid"></div>
         <label>أو ارفع صورة من جهازك:</label>
         <input type="file" class="modal-input" accept="image/*" onchange="handleUpload(event)" style="padding:8px;">
+        <div class="upload-inline-progress" id="m-img-upload-progress" style="display:none;">
+            <div class="uip-bar-track"><div class="uip-bar-fill" id="m-img-upload-fill"></div></div>
+            <div class="uip-bar-label"><span id="m-img-upload-text">جارِ الرفع...</span><span id="m-img-upload-pct">0%</span></div>
+        </div>
         <div class="modal-footer">
             <button class="rbtn" onclick="closeModal('m-img')">إغلاق</button>
         </div>
@@ -1942,8 +1973,9 @@ function applyImg(src) {
 }
 
 // Shrinks & re-encodes an uploaded image on a canvas before it's turned into
-// a data URL — keeps phone-camera photos (often several MB each) small
-// enough that many of them can actually fit in the browser's local storage.
+// a Blob — keeps phone-camera photos (often several MB each) small and fast
+// to upload. Resolves to a Blob (not a data URL): the file is uploaded to
+// real media hosting as binary, never embedded as base64 text.
 function compressImageFile(file, maxDim, quality) {
     maxDim = maxDim || 1600;
     quality = quality || 0.82;
@@ -1961,24 +1993,147 @@ function compressImageFile(file, maxDim, quality) {
                     canvas.width = cw; canvas.height = ch;
                     var ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, cw, ch);
-                    resolve(canvas.toDataURL('image/jpeg', quality));
+                    canvas.toBlob(function(blob){
+                        resolve(blob || file); // fall back to the original file if canvas fails
+                    }, 'image/jpeg', quality);
                 } catch (e) {
-                    resolve(evt.target.result); // fall back to the original if canvas fails
+                    resolve(file); // fall back to the original file if canvas fails
                 }
             };
-            img.onerror = function(){ resolve(evt.target.result); };
+            img.onerror = function(){ resolve(file); };
             img.src = evt.target.result;
         };
-        reader.onerror = function(){ resolve(null); };
+        reader.onerror = function(){ resolve(file); };
         reader.readAsDataURL(file);
     });
+}
+
+// ── Media hosting (Cloudinary, unsigned direct upload from the browser) ──
+// Only a short secure_url ever gets written into the presentation JSON /
+// jsonbin Bin — never the file itself. That's what keeps the Bin small no
+// matter how many images/videos get added (jsonbin's free plan caps a Bin
+// around ~1MB, and base64 media used to blow past that silently), and it's
+// what makes a real upload progress percentage possible to show.
+var CLOUDINARY_CLOUD_NAME = 'yg6qvrko';
+var CLOUDINARY_UPLOAD_PRESET = 'dtwoeuyr';
+
+function uploadToCloudinary(fileOrBlob, resourceType, onProgress) {
+    return new Promise(function(resolve, reject){
+        var url = 'https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD_NAME + '/' + resourceType + '/upload';
+        var fd = new FormData();
+        fd.append('file', fileOrBlob);
+        fd.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', url, true);
+
+        xhr.upload.onprogress = function(evt){
+            if (onProgress && evt.lengthComputable) {
+                onProgress(Math.round((evt.loaded / evt.total) * 100));
+            }
+        };
+
+        xhr.onload = function(){
+            var res = null;
+            try { res = JSON.parse(xhr.responseText); } catch (e) {}
+            if (xhr.status >= 200 && xhr.status < 300 && res && res.secure_url) {
+                if (onProgress) onProgress(100);
+                resolve(res.secure_url);
+            } else {
+                reject((res && res.error && res.error.message) || 'فشل الرفع (' + xhr.status + ')');
+            }
+        };
+        xhr.onerror = function(){ reject('تعذّر الاتصال بخدمة الاستضافة، تأكد من الإنترنت.'); };
+        xhr.send(fd);
+    });
+}
+
+// Glass progress ring — same frosted-glass language as the rest of the
+// dashboard (translucent white + blur), not a brand/gold treatment, since
+// this is a transient loading state rather than a piece of the identity.
+function glassUploadOverlayHtml(ringId, label) {
+    var C = 119.4; // 2 * PI * r(19)
+    return '<div class="upload-glass-overlay" id="' + ringId + '">' +
+        '<div class="upload-glass-ring">' +
+        '<svg viewBox="0 0 46 46">' +
+        '<circle class="ring-bg" cx="23" cy="23" r="19"></circle>' +
+        '<circle class="ring-fg" cx="23" cy="23" r="19" stroke-dasharray="' + C + '" stroke-dashoffset="' + C + '"></circle>' +
+        '</svg>' +
+        '<div class="upload-glass-pct">0%</div>' +
+        '</div>' +
+        '<div class="upload-glass-label">' + (label || 'جارِ الرفع...') + '</div>' +
+        '</div>';
+}
+
+function updateGlassUploadOverlay(ringId, pct) {
+    var C = 119.4;
+    var el = document.getElementById(ringId);
+    if (!el) return;
+    var fg = el.querySelector('.ring-fg');
+    var pctEl = el.querySelector('.upload-glass-pct');
+    if (fg) fg.style.strokeDashoffset = String(C * (1 - pct / 100));
+    if (pctEl) pctEl.textContent = pct + '%';
+}
+
+// Drops a temporary "uploading" tile into the project media grid — an
+// instant local preview (via a blob URL) plus the glass progress ring —
+// so the admin sees the file's own thumbnail filling up in real time
+// instead of a generic spinner. Swapped out for the real item on success.
+function insertMediaUploadingTile(tileId, previewUrl, type) {
+    var box = document.querySelector('#canvas .media-mgr-box');
+    if (!box) return;
+    var grid = box.querySelector('.media-mgr-grid');
+    if (!grid) {
+        var empty = box.querySelector('.media-mgr-empty');
+        grid = document.createElement('div');
+        grid.className = 'media-mgr-grid';
+        if (empty && empty.parentNode) empty.parentNode.replaceChild(grid, empty);
+        else box.appendChild(grid);
+    }
+    var tile = document.createElement('div');
+    tile.className = 'media-mgr-item';
+    tile.id = tileId + '-tile';
+    tile.dataset.previewUrl = previewUrl;
+    var previewTag = type === 'video'
+        ? '<video src="' + previewUrl + '" muted></video>'
+        : '<img src="' + previewUrl + '" alt="">';
+    tile.innerHTML = previewTag + glassUploadOverlayHtml(tileId, type === 'video' ? 'جارِ رفع الفيديو...' : 'جارِ رفع الصورة...');
+    grid.appendChild(tile);
+}
+
+function removeMediaUploadingTile(tileId) {
+    var tile = document.getElementById(tileId + '-tile');
+    if (!tile) return;
+    if (tile.dataset.previewUrl) { try { URL.revokeObjectURL(tile.dataset.previewUrl); } catch (e) {} }
+    if (tile.parentNode) tile.parentNode.removeChild(tile);
 }
 
 function handleUpload(e) {
     var file = e.target.files && e.target.files[0];
     if (!file) return;
-    compressImageFile(file, 1800, 0.85).then(function(dataUrl){
-        if (dataUrl) applyImg(dataUrl);
+    e.target.value = '';
+
+    var progWrap = document.getElementById('m-img-upload-progress');
+    var fillEl = document.getElementById('m-img-upload-fill');
+    var pctEl = document.getElementById('m-img-upload-pct');
+    var textEl = document.getElementById('m-img-upload-text');
+    if (progWrap) progWrap.style.display = 'block';
+    if (fillEl) fillEl.style.width = '0%';
+    if (pctEl) pctEl.textContent = '0%';
+    if (textEl) textEl.textContent = 'جارِ ضغط الصورة...';
+
+    compressImageFile(file, 1800, 0.85).then(function(blob){
+        if (textEl) textEl.textContent = 'جارِ رفع الصورة...';
+        uploadToCloudinary(blob, 'image', function(pct){
+            if (fillEl) fillEl.style.width = pct + '%';
+            if (pctEl) pctEl.textContent = pct + '%';
+        }).then(function(secureUrl){
+            if (progWrap) progWrap.style.display = 'none';
+            applyImg(secureUrl);
+        }).catch(function(err){
+            if (progWrap) progWrap.style.display = 'none';
+            toast('⚠️ فشل رفع الصورة: ' + err);
+        });
     });
 }
 
@@ -1986,25 +2141,41 @@ function handleUpload(e) {
 function handleProjectMediaImageUpload(e) {
     var file = e.target.files && e.target.files[0];
     if (!file) return;
-    var inputEl = e.target;
-    compressImageFile(file, 1600, 0.82).then(function(dataUrl){
-        inputEl.value = '';
-        if (dataUrl) addProjectMediaItem('image', dataUrl, '');
+    e.target.value = '';
+
+    var tileId = 'mm-up-' + Date.now();
+    insertMediaUploadingTile(tileId, URL.createObjectURL(file), 'image');
+
+    compressImageFile(file, 1600, 0.82).then(function(blob){
+        uploadToCloudinary(blob, 'image', function(pct){
+            updateGlassUploadOverlay(tileId, pct);
+        }).then(function(secureUrl){
+            removeMediaUploadingTile(tileId);
+            addProjectMediaItem('image', secureUrl, '');
+        }).catch(function(err){
+            removeMediaUploadingTile(tileId);
+            toast('⚠️ فشل رفع الصورة: ' + err);
+        });
     });
 }
 
 function handleProjectMediaVideoUpload(e) {
     var file = e.target.files && e.target.files[0];
     if (!file) return;
-    if (file.size > 8 * 1024 * 1024) {
-        toast('⚠️ الفيديو أكبر من 8 ميجا وغالباً لن يُحفظ في تخزين المتصفح المحلي. الأفضل استخدام زر "فيديو برابط" بدلاً من الرفع المباشر لفيديوهات كبيرة.');
-    }
-    var reader = new FileReader();
-    reader.onload = function(evt){
-        addProjectMediaItem('video', evt.target.result, '');
-        e.target.value = '';
-    };
-    reader.readAsDataURL(file);
+    e.target.value = '';
+
+    var tileId = 'mm-up-' + Date.now();
+    insertMediaUploadingTile(tileId, URL.createObjectURL(file), 'video');
+
+    uploadToCloudinary(file, 'video', function(pct){
+        updateGlassUploadOverlay(tileId, pct);
+    }).then(function(secureUrl){
+        removeMediaUploadingTile(tileId);
+        addProjectMediaItem('video', secureUrl, '');
+    }).catch(function(err){
+        removeMediaUploadingTile(tileId);
+        toast('⚠️ فشل رفع الفيديو: ' + err);
+    });
 }
 
 function addProjectMediaVideoUrl() {
