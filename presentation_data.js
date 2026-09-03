@@ -43,6 +43,29 @@ const STORAGE_KEY = 'zidan_presentation_live_data_v21';
 const AUTH_KEY = 'zidan_admin_auth_v1';
 const CLOUD_CONFIG_KEY = 'zidan_cloud_endpoint_config_v1';
 
+/**
+ * Baked-in cloud config, shipped with the site's code (committed to GitHub).
+ * This is what makes the gallery/media actually show up for real visitors:
+ * previously the cloud endpoint only existed inside the ADMIN's own browser
+ * (saved to localStorage from the dashboard's "☁️ ربط السحابة" modal), so a
+ * stranger opening the GitHub-hosted site had no endpoint to pull data from
+ * at all and always fell back to the empty/default data.
+ *
+ * apiKey here MUST be a jsonbin.io read-only Access Key (bins.read = true,
+ * everything else false) — never the Master Key. It is publicly visible to
+ * anyone who views the page source, so it should only ever be able to READ
+ * the bin, not modify or delete it. The admin's own write-capable key (the
+ * Master Key, or a read+write Access Key) is entered once in the dashboard's
+ * Cloud modal and stays only in the admin's own browser localStorage — it is
+ * never written into this file.
+ */
+const DEFAULT_CLOUD_CONFIG = {
+    endpoint: "https://api.jsonbin.io/v3/b/6a995959da38895dfe3382e9",
+    apiKey: "$2a$10$gHLsiRrx0i73LU7/PNVZZufOl9P0f70b4t5Uoqe2ZjesMZHOhuSoO",
+    keyType: "access", // 'access' = read-only key, sent as X-Access-Key only. Admin keys saved from the dashboard default to 'master' and are sent as X-Master-Key.
+    autoSyncInterval: 8000
+};
+
 const DEFAULT_AUTH = {
     username: "admin",
     password: "Zidan@2026#Developments"
@@ -58,9 +81,14 @@ try {
 function getCloudConfig() {
     try {
         const stored = localStorage.getItem(CLOUD_CONFIG_KEY);
-        if (stored) return JSON.parse(stored);
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            if (parsed && parsed.endpoint && parsed.endpoint.startsWith('http')) return parsed;
+        }
     } catch (e) {}
-    return { endpoint: "", apiKey: "", autoSyncInterval: 8000 };
+    // No admin config saved in this browser (e.g. a first-time site visitor) —
+    // fall back to the read-only config baked into the shipped code.
+    return DEFAULT_CLOUD_CONFIG;
 }
 
 function saveCloudConfig(cfg) {
@@ -103,7 +131,10 @@ async function savePresentationData(data) {
     }
 
     const cloudCfg = getCloudConfig();
-    if (cloudCfg && cloudCfg.endpoint && cloudCfg.endpoint.startsWith('http')) {
+    // keyType 'access' means this is the baked-in, read-only default key
+    // (no admin write key has been configured in this browser yet) — it can
+    // never write, so don't bother making a request that's guaranteed to fail.
+    if (cloudCfg && cloudCfg.endpoint && cloudCfg.endpoint.startsWith('http') && cloudCfg.keyType !== 'access') {
         try {
             const headers = { 'Content-Type': 'application/json' };
             if (cloudCfg.apiKey) {
@@ -135,9 +166,15 @@ async function fetchFromCloud() {
     try {
         const headers = {};
         if (cloudCfg.apiKey) {
-            headers['X-Master-Key'] = cloudCfg.apiKey;
-            headers['X-Access-Key'] = cloudCfg.apiKey;
-            headers['Authorization'] = 'Bearer ' + cloudCfg.apiKey;
+            if (cloudCfg.keyType === 'access') {
+                // Read-only key (e.g. the baked-in default) — must ONLY ever
+                // be sent as X-Access-Key, never as X-Master-Key.
+                headers['X-Access-Key'] = cloudCfg.apiKey;
+            } else {
+                headers['X-Master-Key'] = cloudCfg.apiKey;
+                headers['X-Access-Key'] = cloudCfg.apiKey;
+                headers['Authorization'] = 'Bearer ' + cloudCfg.apiKey;
+            }
         }
 
         const res = await fetch(cloudCfg.endpoint, { method: 'GET', headers: headers });
