@@ -244,6 +244,28 @@
         .spec-del { background: none; border: none; color: #f87171; font-size: 16px; cursor: pointer; padding: 0 4px; transition: color 0.2s; }
         .spec-del:hover { color: #ef4444; }
 
+        /* Project media manager (gallery images/videos) */
+        .media-mgr-box { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 14px; margin-top: 14px; }
+        .media-mgr-title { font-size: 12px; font-weight: 700; color: #64748b; margin-bottom: 10px; }
+        .media-mgr-actions { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+        .media-mgr-actions button {
+            background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.16); color: #fff;
+            padding: 7px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 700; cursor: pointer;
+            display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;
+        }
+        .media-mgr-actions button:hover { background: rgba(255,255,255,0.16); transform: translateY(-1px); }
+        .media-mgr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+        .media-mgr-item { position: relative; border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); background: #0d0d10; aspect-ratio: 1/1; }
+        .media-mgr-item img, .media-mgr-item video { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .media-mgr-item .mm-badge { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.55); color: #fff; font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 20px; }
+        .media-mgr-item .mm-del { position: absolute; top: 6px; left: 6px; background: rgba(248,113,113,0.85); border: none; color: #fff; width: 20px; height: 20px; border-radius: 50%; cursor: pointer; font-size: 13px; line-height: 1; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; }
+        .media-mgr-item:hover .mm-del { opacity: 1; }
+        .media-mgr-item .mm-cap {
+            position: absolute; right: 0; bottom: 0; left: 0; font-size: 10px; padding: 4px 6px;
+            background: rgba(0,0,0,0.6); color: #fff; outline: none; border: none; text-align: center;
+        }
+        .media-mgr-empty { color: #52525b; font-size: 12px; padding: 10px 0; }
+
         /* White card variant for founder */
         .c-card-white {
             background: linear-gradient(145deg, #ffffff, #f1f5f9); border-radius: 20px; padding: 34px; color: #000000; font-weight: 700;
@@ -737,6 +759,10 @@
         </div>
     </div>
 </div>
+
+<!-- Hidden inputs: project media (gallery images/videos) uploads -->
+<input type="file" id="proj-media-img-input" accept="image/*" style="display:none" onchange="handleProjectMediaImageUpload(event)">
+<input type="file" id="proj-media-vid-input" accept="video/*" style="display:none" onchange="handleProjectMediaVideoUpload(event)">
 
 <!-- Modal: Cloud -->
 <div class="modal" id="m-cloud">
@@ -1672,6 +1698,32 @@ function renderCanvas() {
         var spHtml = ''; (s.specs||[]).forEach(function(sp, si){
             spHtml += '<div class="spec-item"><span contenteditable="true" onblur="uspec('+si+',this.innerText)">'+sp+'</span><button class="spec-del" onclick="rspec('+si+')">&times;</button></div>';
         });
+        var mediaArr = s.media || [];
+        var mmHtml = '';
+        if (mediaArr.length === 0) {
+            mmHtml = '<div class="media-mgr-empty">لا توجد صور أو فيديوهات مضافة لهذا المشروع بعد.</div>';
+        } else {
+            mmHtml = '<div class="media-mgr-grid">';
+            mediaArr.forEach(function(m, mi){
+                var cap = (m.caption||'').replace(/"/g,'&quot;');
+                if (m.type === 'video') {
+                    mmHtml += '<div class="media-mgr-item">' +
+                        '<video src="'+m.url+'" muted preload="metadata"></video>' +
+                        '<span class="mm-badge">🎬 فيديو</span>' +
+                        '<button class="mm-del" title="حذف" onclick="removeProjectMedia('+mi+')">&times;</button>' +
+                        '<input class="mm-cap" placeholder="وصف الفيديو" value="'+cap+'" onblur="updateProjectMediaCaption('+mi+',this.value)">' +
+                        '</div>';
+                } else {
+                    mmHtml += '<div class="media-mgr-item">' +
+                        '<img src="'+m.url+'" alt="'+cap+'">' +
+                        '<span class="mm-badge">🖼️ صورة</span>' +
+                        '<button class="mm-del" title="حذف" onclick="removeProjectMedia('+mi+')">&times;</button>' +
+                        '<input class="mm-cap" placeholder="وصف الصورة" value="'+cap+'" onblur="updateProjectMediaCaption('+mi+',this.value)">' +
+                        '</div>';
+                }
+            });
+            mmHtml += '</div>';
+        }
         html = '<div class="g2">' +
             '<div class="c-card">' +
             '<div contenteditable="true" class="c-badge" onblur="uf(\'badge\',this.innerText)">'+(s.badge||'')+'</div>' +
@@ -1679,7 +1731,15 @@ function renderCanvas() {
             '<div contenteditable="true" class="c-loc" onblur="uf(\'location\',this.innerText)">📍 '+(s.location||'')+'</div>' +
             '<div contenteditable="true" class="c-desc" onblur="uf(\'description\',this.innerText)">'+(s.description||'')+'</div>' +
             '<div style="border-top:1px solid rgba(255,255,255,0.1);padding-top:12px;"><div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:8px;">المواصفات:</div>' +
-            '<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;">'+spHtml+'</div></div></div>' +
+            '<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;">'+spHtml+'</div></div>' +
+            '<div class="media-mgr-box">' +
+            '<div class="media-mgr-title">معرض صور وفيديوهات المشروع (يظهر كمجمع صور قابل للتكبير في صفحة العرض):</div>' +
+            '<div class="media-mgr-actions">' +
+            '<button onclick="document.getElementById(\'proj-media-img-input\').click()">🖼️ + إضافة صورة</button>' +
+            '<button onclick="document.getElementById(\'proj-media-vid-input\').click()">🎬 + إضافة فيديو</button>' +
+            '<button onclick="addProjectMediaVideoUrl()">🔗 + فيديو برابط</button>' +
+            '</div>' + mmHtml + '</div>' +
+            '</div>' +
             '<div style="text-align:center"><div class="img-wrap" onclick="openModal(\'m-img\')">' +
             '<img src="'+(s.photoUrl||'images/building-1.jpeg')+'">' +
             '<div class="img-overlay"><span class="img-badge">🖼️ تغيير الصورة</span></div></div></div></div>';
@@ -1835,7 +1895,7 @@ function confirmAdd() {
         id: 'slide-' + Date.now(), type: 'project', title: name, badge: badge, heading: name,
         location: loc, description: desc,
         specs: ['واجهات معمارية فاخرة','مداخل رخامية فندقية','موقع استراتيجي مميز','إشراف هندسي متكامل'],
-        photoUrl: 'images/building-1.jpeg', photoCaption: name
+        photoUrl: 'images/building-1.jpeg', photoCaption: name, media: []
     });
     activeIdx++;
     closeModal('m-add');
@@ -1874,16 +1934,120 @@ function applyImg(src) {
     else if (s.type === 'founder') s.photoUrl = src;
     else s.photoUrl = src;
     closeModal('m-img');
-    renderCanvas(); savePresentationData(data);
-    toast('تم تطبيق الصورة!');
+    renderCanvas();
+    savePresentationData(data).then(function(ok){
+        if (!ok) toast('⚠️ الصورة كبيرة جداً على مساحة التخزين المتاحة، جرّب صورة أصغر.');
+        else toast('تم تطبيق الصورة!');
+    });
+}
+
+// Shrinks & re-encodes an uploaded image on a canvas before it's turned into
+// a data URL — keeps phone-camera photos (often several MB each) small
+// enough that many of them can actually fit in the browser's local storage.
+function compressImageFile(file, maxDim, quality) {
+    maxDim = maxDim || 1600;
+    quality = quality || 0.82;
+    return new Promise(function(resolve){
+        var reader = new FileReader();
+        reader.onload = function(evt){
+            var img = new Image();
+            img.onload = function(){
+                try {
+                    var w = img.width, h = img.height;
+                    var scale = Math.min(1, maxDim / Math.max(w, h));
+                    var cw = Math.max(1, Math.round(w * scale));
+                    var ch = Math.max(1, Math.round(h * scale));
+                    var canvas = document.createElement('canvas');
+                    canvas.width = cw; canvas.height = ch;
+                    var ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, cw, ch);
+                    resolve(canvas.toDataURL('image/jpeg', quality));
+                } catch (e) {
+                    resolve(evt.target.result); // fall back to the original if canvas fails
+                }
+            };
+            img.onerror = function(){ resolve(evt.target.result); };
+            img.src = evt.target.result;
+        };
+        reader.onerror = function(){ resolve(null); };
+        reader.readAsDataURL(file);
+    });
 }
 
 function handleUpload(e) {
     var file = e.target.files && e.target.files[0];
-    if (file) {
-        var reader = new FileReader();
-        reader.onload = function(evt){ applyImg(evt.target.result); };
-        reader.readAsDataURL(file);
+    if (!file) return;
+    compressImageFile(file, 1800, 0.85).then(function(dataUrl){
+        if (dataUrl) applyImg(dataUrl);
+    });
+}
+
+// ── Project media manager (gallery images/videos on 'project' slides) ──
+function handleProjectMediaImageUpload(e) {
+    var file = e.target.files && e.target.files[0];
+    if (!file) return;
+    var inputEl = e.target;
+    compressImageFile(file, 1600, 0.82).then(function(dataUrl){
+        inputEl.value = '';
+        if (dataUrl) addProjectMediaItem('image', dataUrl, '');
+    });
+}
+
+function handleProjectMediaVideoUpload(e) {
+    var file = e.target.files && e.target.files[0];
+    if (!file) return;
+    if (file.size > 8 * 1024 * 1024) {
+        toast('⚠️ الفيديو أكبر من 8 ميجا وغالباً لن يُحفظ في تخزين المتصفح المحلي. الأفضل استخدام زر "فيديو برابط" بدلاً من الرفع المباشر لفيديوهات كبيرة.');
+    }
+    var reader = new FileReader();
+    reader.onload = function(evt){
+        addProjectMediaItem('video', evt.target.result, '');
+        e.target.value = '';
+    };
+    reader.readAsDataURL(file);
+}
+
+function addProjectMediaVideoUrl() {
+    var url = prompt('ألصق رابط الفيديو المباشر (يفضل ملف .mp4):');
+    if (!url) return;
+    url = url.trim();
+    if (!url) return;
+    addProjectMediaItem('video', url, '');
+}
+
+function addProjectMediaItem(type, url, caption) {
+    var s = data.slides[activeIdx];
+    if (!s || s.type !== 'project') return;
+    s.media = s.media || [];
+    s.media.push({ type: type, url: url, caption: caption || '' });
+    renderCanvas();
+    savePresentationData(data).then(function(ok){
+        if (!ok) {
+            // Ran out of local storage space — undo the addition so the
+            // slide's data stays consistent with what's actually saved.
+            s.media.pop();
+            renderCanvas();
+            toast('⚠️ الملف كبير جداً على مساحة التخزين المتاحة بالمتصفح. جرّب ملفاً أصغر، أو استخدم "فيديو برابط" للفيديوهات.');
+        } else {
+            toast(type === 'video' ? 'تمت إضافة الفيديو للمعرض.' : 'تمت إضافة الصورة للمعرض.');
+        }
+    });
+}
+
+function removeProjectMedia(mi) {
+    var s = data.slides[activeIdx];
+    if (!s || !s.media) return;
+    if (!confirm('حذف هذا العنصر من معرض المشروع؟')) return;
+    s.media.splice(mi, 1);
+    renderCanvas(); savePresentationData(data);
+    toast('تم الحذف.');
+}
+
+function updateProjectMediaCaption(mi, val) {
+    var s = data.slides[activeIdx];
+    if (s && s.media && s.media[mi] !== undefined) {
+        s.media[mi].caption = val;
+        savePresentationData(data);
     }
 }
 
