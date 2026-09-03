@@ -2061,8 +2061,9 @@ function buildMediaMgrBoxHtml(s) {
         mediaArr.forEach(function(m, mi){
             var cap = (m.caption||'').replace(/"/g,'&quot;');
             if (m.type === 'video') {
+                var mmPoster = (typeof zdVideoPosterUrl === 'function') ? zdVideoPosterUrl(m) : (m.poster || '');
                 mmHtml += '<div class="media-mgr-item">' +
-                    '<video src="'+m.url+'" muted preload="metadata"></video>' +
+                    '<video src="'+m.url+'" poster="'+mmPoster+'" muted preload="metadata"></video>' +
                     '<span class="mm-badge">🎬 فيديو</span>' +
                     '<button class="mm-del" title="حذف" onclick="removeProjectMedia('+mi+')">&times;</button>' +
                     '<input class="mm-cap" placeholder="وصف الفيديو" value="'+cap+'" onblur="updateProjectMediaCaption('+mi+',this.value)">' +

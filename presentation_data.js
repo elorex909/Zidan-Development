@@ -2,6 +2,43 @@
  * Zidan Developments — Central Engine
  */
 
+// ── Cloudinary media helpers ──
+// Photos/videos added from the dashboard are uploaded as real files to
+// Cloudinary (see uploadToCloudinary() in dashboard.html) and only the
+// hosted URL is stored in the data. These two helpers are shared by every
+// place that renders a video (the media gallery grid, the photo "pile"
+// cover, the specs-list fan, and the admin's own media manager) so all of
+// them behave consistently:
+//
+// 1) zdCloudinaryVideoUrl() routes playback through Cloudinary's
+//    automatic transcoding (f_auto,q_auto). Some phones/apps export video
+//    in a codec or container the visitor's browser can't fully decode —
+//    the classic symptom is the first frame or two playing and then the
+//    video stalling. Requesting f_auto,q_auto makes Cloudinary serve a
+//    re-encoded, broadly web-compatible file instead of the raw upload.
+// 2) zdVideoPosterUrl() gives every video a real thumbnail (its first
+//    frame) pulled from Cloudinary, instead of relying on the browser to
+//    render one — which is why video tiles were showing up empty.
+function zdIsCloudinaryVideo(url) {
+    return typeof url === 'string' && /^https?:\/\/res\.cloudinary\.com\/[^/]+\/video\/upload\//.test(url);
+}
+function zdCloudinaryVideoUrl(url) {
+    if (!zdIsCloudinaryVideo(url)) return url;
+    if (url.indexOf('/upload/f_auto,q_auto/') !== -1) return url;
+    return url.replace('/upload/', '/upload/f_auto,q_auto/');
+}
+function zdVideoPosterUrl(m) {
+    if (!m) return '';
+    if (m.poster) return m.poster;
+    if (!zdIsCloudinaryVideo(m.url)) return '';
+    const optimized = zdCloudinaryVideoUrl(m.url);
+    return optimized.replace(/\.[a-zA-Z0-9]+(\?.*)?$/, '.jpg$1');
+}
+if (typeof window !== 'undefined') {
+    window.zdCloudinaryVideoUrl = zdCloudinaryVideoUrl;
+    window.zdVideoPosterUrl = zdVideoPosterUrl;
+}
+
 const DEFAULT_PRESENTATION_DATA = {
     settings: {
         companyName: "زيدان للتطوير العقاري",
@@ -381,7 +418,7 @@ function buildDynamicPresentationHTML(data) {
                 thumbs.forEach((m, li) => {
                     const cls = layerClass[clsOffset + li];
                     if (m.type === 'video') {
-                        layersHtml += `<div class="pile-layer ${cls} is-video" style="background-image:url('${m.poster || ''}')"><div class="glass-play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>`;
+                        layersHtml += `<div class="pile-layer ${cls} is-video" style="background-image:url('${zdVideoPosterUrl(m)}')"><div class="glass-play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>`;
                     } else {
                         layersHtml += `<div class="pile-layer ${cls}" style="background-image:url('${m.url}')"></div>`;
                     }
@@ -407,7 +444,7 @@ function buildDynamicPresentationHTML(data) {
                 let fanCardsHtml = '';
                 fanItems.forEach((m, fi) => {
                     const angle = fanAngles[fi % fanAngles.length];
-                    const bg = m.type === 'video' ? (m.poster || '') : m.url;
+                    const bg = m.type === 'video' ? zdVideoPosterUrl(m) : m.url;
                     const isLastCard = (fi === fanItems.length - 1);
                     const moreOverlay = (isLastCard && extraCount > 0) ? `<div class="fan-more">+${extraCount}</div>` : '';
                     const playOverlay = (m.type === 'video' && !moreOverlay) ? `<div class="fan-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>` : '';

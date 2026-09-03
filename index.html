@@ -1426,7 +1426,7 @@
         #image-lightbox {
             position: fixed;
             inset: 0;
-            z-index: 10000;
+            z-index: 10150;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -3483,8 +3483,9 @@
                 allMedia.forEach(function(m, mi){
                     const cap = (m.caption || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
                     if(m.type === 'video'){
+                        const poster = (typeof zdVideoPosterUrl === 'function') ? zdVideoPosterUrl(m) : (m.poster || '');
                         h += '<div class="mg-item" onclick="event.stopPropagation(); window.openVideoPlayer(' + slideIdx + ',' + (mi - 1) + ');">' +
-                             '<video src="' + m.url + '" muted preload="metadata"></video>' +
+                             '<video src="' + m.url + '" poster="' + poster + '" muted preload="metadata"></video>' +
                              '<div class="mg-play-badge"><div class="glass-play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>' +
                              (m.caption ? '<div class="mg-item-cap">' + cap + '</div>' : '') +
                              '</div>';
@@ -3518,7 +3519,7 @@
             const m = s && Array.isArray(s.media) ? s.media[mediaIdx] : null;
             if(!m || !m.url || !vpVideo) return;
             vpVideo.pause();
-            vpVideo.src = m.url;
+            vpVideo.src = (typeof zdCloudinaryVideoUrl === 'function') ? zdCloudinaryVideoUrl(m.url) : m.url;
             vpVideo.currentTime = 0;
             if(vpCaption) vpCaption.textContent = m.caption || '';
             if(vpModal) vpModal.classList.add('active');
