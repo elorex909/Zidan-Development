@@ -284,19 +284,30 @@ function saveStoredAuth(authObj) {
  * reachable yet, e.g. storage hasn't been connected on Vercel yet, or this
  * is running locally without the API). Callers should fall back to
  * getStoredAuth() only on 'no-server', never on 'invalid'.
+ *
+ * Wrapped with an 8s AbortController timeout: fetch() has no built-in
+ * timeout, so if the serverless function hangs (e.g. Redis reachable but
+ * mis-configured, so the connection never errors, just never returns) this
+ * promise would otherwise never settle and the login button would be stuck
+ * on "جاري التحقق..." forever instead of falling back to the local check.
  */
 async function remoteLogin(username, password) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(function(){ controller.abort(); }, 8000);
     try {
         const r = await fetch('/api/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username: username, password: password })
+            body: JSON.stringify({ username: username, password: password }),
+            signal: controller.signal
         });
         if (r.status === 503) return 'no-server';
         const data = await r.json();
         return data && data.ok ? 'ok' : 'invalid';
     } catch (e) {
         return 'no-server';
+    } finally {
+        clearTimeout(timeoutId);
     }
 }
 
@@ -308,6 +319,9 @@ async function remoteLogin(username, password) {
  * Returns { status: 'ok' } or { status: 'invalid'|'no-server'|'error', message }.
  */
 async function remoteChangePassword(currentUsername, currentPassword, newUsername, newPassword) {
+    // Same 8s timeout guard as remoteLogin() — see the comment there.
+    const controller = new AbortController();
+    const timeoutId = setTimeout(function(){ controller.abort(); }, 8000);
     try {
         const r = await fetch('/api/change-password', {
             method: 'POST',
@@ -315,7 +329,8 @@ async function remoteChangePassword(currentUsername, currentPassword, newUsernam
             body: JSON.stringify({
                 currentUsername: currentUsername, currentPassword: currentPassword,
                 newUsername: newUsername, newPassword: newPassword
-            })
+            }),
+            signal: controller.signal
         });
         if (r.status === 503) return { status: 'no-server' };
         const data = await r.json();
@@ -325,6 +340,8 @@ async function remoteChangePassword(currentUsername, currentPassword, newUsernam
         return { status: 'error', message: 'حدث خطأ غير متوقع.' };
     } catch (e) {
         return { status: 'no-server' };
+    } finally {
+        clearTimeout(timeoutId);
     }
 }
 
