@@ -276,6 +276,59 @@ function saveStoredAuth(authObj) {
 }
 
 /**
+ * Server-checked login. Verifies against the single shared credential kept
+ * in Redis (via /api/login) so every device — not just the one that last
+ * changed it — sees the current password.
+ *
+ * Returns one of: 'ok', 'invalid', or 'no-server' (the /api route isn't
+ * reachable yet, e.g. storage hasn't been connected on Vercel yet, or this
+ * is running locally without the API). Callers should fall back to
+ * getStoredAuth() only on 'no-server', never on 'invalid'.
+ */
+async function remoteLogin(username, password) {
+    try {
+        const r = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: username, password: password })
+        });
+        if (r.status === 503) return 'no-server';
+        const data = await r.json();
+        return data && data.ok ? 'ok' : 'invalid';
+    } catch (e) {
+        return 'no-server';
+    }
+}
+
+/**
+ * Server-checked password change via /api/change-password. Requires the
+ * current username+password as proof, and stores the new one centrally
+ * (hashed) so it's immediately in effect on every device.
+ *
+ * Returns { status: 'ok' } or { status: 'invalid'|'no-server'|'error', message }.
+ */
+async function remoteChangePassword(currentUsername, currentPassword, newUsername, newPassword) {
+    try {
+        const r = await fetch('/api/change-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                currentUsername: currentUsername, currentPassword: currentPassword,
+                newUsername: newUsername, newPassword: newPassword
+            })
+        });
+        if (r.status === 503) return { status: 'no-server' };
+        const data = await r.json();
+        if (data && data.ok) return { status: 'ok' };
+        if (data && data.error === 'CURRENT_PASSWORD_INCORRECT') return { status: 'invalid', message: 'كلمة المرور الحالية غير صحيحة.' };
+        if (data && data.error === 'PASSWORD_TOO_SHORT') return { status: 'invalid', message: 'كلمة المرور الجديدة قصيرة جدًا (6 أحرف على الأقل).' };
+        return { status: 'error', message: 'حدث خطأ غير متوقع.' };
+    } catch (e) {
+        return { status: 'no-server' };
+    }
+}
+
+/**
  * Applies the saved brand/accent color (set from the dashboard's
  * "الهوية البصرية" panel) to the live site by updating the
  * --brand-color CSS variable on <html>. index.html's stylesheet

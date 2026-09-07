@@ -109,13 +109,28 @@
         /* Ribbon Toolbar */
         .ribbon {
             display: flex; align-items: center; justify-content: space-between;
-            padding: 0 20px; height: 60px; min-height: 60px;
+            padding: 0 16px; height: 60px; min-height: 60px; gap: 8px;
             background: rgba(5, 5, 5, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
             border-bottom: 1px solid rgba(255,255,255,0.06); z-index: 20;
         }
-        .ribbon-left { display: flex; align-items: center; gap: 8px; }
-        .ribbon-logo img { height: 28px; margin-left: 16px; }
-        .ribbon-sep { width: 1px; height: 32px; background: rgba(255,255,255,0.03); margin: 0 10px; }
+        .ribbon-logo { flex-shrink: 0; }
+        .ribbon-logo img { height: 28px; margin-left: 16px; display: block; }
+        .ribbon-sep { width: 1px; height: 32px; background: rgba(255,255,255,0.03); margin: 0 10px; flex-shrink: 0; }
+        /* Each button group scrolls on its own instead of overflowing past the
+           screen edge — this is what used to hide the الأمان/طباعة/خروج buttons
+           entirely on laptop-width screens with no way to reach them. */
+        .ribbon-left, .ribbon-actions {
+            display: flex; align-items: center; gap: 8px; min-width: 0;
+            overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.25) transparent;
+            -webkit-mask-image: linear-gradient(to left, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+            mask-image: linear-gradient(to left, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+        }
+        .ribbon-left { flex: 1 1 auto; }
+        .ribbon-actions { flex: 0 1 auto; gap: 6px; }
+        .ribbon-left::-webkit-scrollbar, .ribbon-actions::-webkit-scrollbar { height: 4px; }
+        .ribbon-left::-webkit-scrollbar-thumb, .ribbon-actions::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+        .ribbon-left .rbtn, .ribbon-actions .rbtn, .ribbon-left .ribbon-sep { flex-shrink: 0; }
 
         .rbtn {
             padding: 8px 16px; border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; font-size: 12.5px;
@@ -328,7 +343,12 @@
 
         
         /* Custom scrollbar for horizontal scrolling areas */
-        .h-scroll { display: flex; overflow-x: auto; gap: 14px; padding-bottom: 14px; width: 100%; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.2) transparent; }
+        .h-scroll {
+            display: flex; overflow-x: auto; gap: 14px; padding: 4px 6px 14px; width: 100%;
+            scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.2) transparent;
+            -webkit-mask-image: linear-gradient(to left, transparent 0, #000 20px, #000 calc(100% - 20px), transparent 100%);
+            mask-image: linear-gradient(to left, transparent 0, #000 20px, #000 calc(100% - 20px), transparent 100%);
+        }
         .h-scroll::-webkit-scrollbar { height: 6px; }
         .h-scroll::-webkit-scrollbar-track { background: transparent; }
         .h-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
@@ -447,10 +467,10 @@
                 flex-direction: column; align-items: stretch;
                 padding: 8px 0; gap: 8px;
             }
-            .ribbon-left, .ribbon > div:last-child {
-                overflow-x: auto; -webkit-overflow-scrolling: touch;
-                padding: 0 12px 4px; scrollbar-width: thin;
+            .ribbon-left, .ribbon-actions {
+                padding: 0 12px 4px;
             }
+            .ribbon-logo { padding: 0 12px; align-self: flex-start; }
             .ribbon-logo img { height: 22px; margin-left: 10px; }
             .ribbon-sep { flex-shrink: 0; }
             .rbtn { flex-shrink: 0; padding: 7px 12px; font-size: 12px; }
@@ -532,7 +552,7 @@
                toolbars use. Kept off elements that already scroll to the
                true edge (first row of ribbon) so the fade doesn't clip
                the first/last real button. ── */
-            .ribbon-left, .ribbon > div:last-child, #sidebar-list, .h-scroll {
+            #sidebar-list, .h-scroll {
                 -webkit-mask-image: linear-gradient(to left, transparent 0, #000 20px, #000 calc(100% - 20px), transparent 100%);
                 mask-image: linear-gradient(to left, transparent 0, #000 20px, #000 calc(100% - 20px), transparent 100%);
                 scroll-snap-type: x proximity;
@@ -610,8 +630,8 @@
 <div id="studio">
     <!-- Ribbon -->
     <header class="ribbon">
+        <div class="ribbon-logo"><img src="images/logo-white.png" alt="Logo"></div>
         <div class="ribbon-left">
-            <div class="ribbon-logo"><img src="images/logo-white.png" alt="Logo"></div>
             <div class="ribbon-sep"></div>
             <button class="rbtn primary" onclick="openModal('m-add')">➕ مشروع جديد</button>
             <button class="rbtn" onclick="dupCurrent()">📋 تكرار</button>
@@ -624,7 +644,7 @@
             <div class="ribbon-sep"></div>
             <button class="rbtn" onclick="openModal('m-cloud')">☁️ ربط السحابة</button>
         </div>
-        <div style="display:flex;align-items:center;gap:6px;">
+        <div class="ribbon-actions">
             <a href="index.html" target="_blank" class="rbtn">👁️ عرض مباشر</a>
             <button class="rbtn primary" onclick="saveAll()" title="Ctrl+S">💾 حفظ</button>
             <button class="rbtn" onclick="undo()" title="تراجع (Ctrl+Z)">↩️</button>
@@ -802,13 +822,17 @@
 <div class="modal" id="m-sec">
     <div class="modal-box">
         <h2>⚙️ إعدادات الحماية وتغيير المرور</h2>
+        <p style="font-size:12px;color:#94a3b8;margin:-6px 0 14px;">التحديث هنا بيتطبق فورًا على كل الأجهزة، مش بس على الجهاز اللي بتستخدمه دلوقتي.</p>
+        <label>كلمة المرور الحالية</label>
+        <input type="password" class="modal-input" id="sec-current-pass" placeholder="اكتب كلمة المرور الحالية للتأكيد" autocomplete="current-password">
         <label>اسم المستخدم الجديد</label>
         <input class="modal-input" id="sec-user">
         <label>كلمة المرور الجديدة</label>
-        <input type="password" class="modal-input" id="sec-pass" placeholder="اكتب كلمة مرور جديدة">
+        <input type="password" class="modal-input" id="sec-pass" placeholder="اكتب كلمة مرور جديدة" autocomplete="new-password">
+        <div id="sec-error" style="display:none;color:#f87171;font-size:12.5px;margin-top:10px;"></div>
         <div class="modal-footer">
             <button class="rbtn" onclick="closeModal('m-sec')">إلغاء</button>
-            <button class="rbtn primary" onclick="saveSec()">تحديث</button>
+            <button class="rbtn primary" id="sec-save-btn" onclick="saveSec()">تحديث</button>
         </div>
     </div>
 </div>
@@ -852,10 +876,30 @@ function saveLoginAttempts(obj) {
 function doLogin() {
     var u = (document.getElementById('inp-user').value || '').trim();
     var p = (document.getElementById('inp-pass').value || '').trim();
-    var auth = getStoredAuth();
-    var ok = (u === auth.username && p === auth.password);
+    var submitBtnEl = document.querySelector('#login-card .btn-login');
+    var originalBtnText = submitBtnEl ? submitBtnEl.textContent : '';
+    if (submitBtnEl) { submitBtnEl.disabled = true; submitBtnEl.textContent = 'جاري التحقق...'; }
 
+    remoteLogin(u, p).then(function(result) {
+        if (submitBtnEl) { submitBtnEl.disabled = false; submitBtnEl.textContent = originalBtnText; }
+        var ok;
+        if (result === 'no-server') {
+            // /api/login isn't reachable yet (storage not connected on Vercel,
+            // or running locally without the API) — fall back to the old
+            // per-browser check so the dashboard doesn't lock everyone out
+            // during setup.
+            var auth = getStoredAuth();
+            ok = (u === auth.username && p === auth.password);
+        } else {
+            ok = (result === 'ok');
+        }
+        finishLoginAttempt(ok, u, p);
+    });
+}
+
+function finishLoginAttempt(ok, u, p) {
     if (ok) {
+        try { saveStoredAuth({ username: u, password: p }); } catch(e){}
         document.getElementById('login-alert').style.display = 'none';
         try { sessionStorage.setItem('zidan_studio_auth_session', 'active'); } catch(e){}
         try { localStorage.removeItem(LOGIN_ATTEMPTS_KEY); } catch(e){}
@@ -1472,7 +1516,7 @@ function getSlideSelectHtml(idx, currentTarget, funcName) {
         var sel = (currentTarget == num) ? ' selected' : '';
         opts += '<option value="' + num + '"' + sel + ' style="color:#0b0d11;background:#fff;">شريحة ' + num + ' - ' + (s.title || s.type) + '</option>';
     });
-    return '<select onchange="'+funcName+'('+idx+',\'targetSlide\',this.value?parseInt(this.value):null)" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);padding:2px 5px;border-radius:4px;font-family:Cairo;font-size:11px;">' + opts + '</select>';
+    return '<select onchange="'+funcName+'('+idx+',\'targetSlide\',this.value?parseInt(this.value):null)" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);padding:4px 5px;border-radius:4px;font-family:Cairo;font-size:11px;width:100%;">' + opts + '</select>';
 }
 
 function getProjectSlideSelectHtml(parentIdx, projIdx, currentTarget, funcName) {
@@ -1713,7 +1757,8 @@ function renderCanvas() {
                 '<div style="font-size:16px;font-weight:700;margin-bottom:4px;" contenteditable="true" dir="auto" onblur="uaf('+ai+',\'name\',this.innerText)">'+(a.name||'')+'</div>' +
                 '<div style="font-size:12px;color:#94a3b8;margin-bottom:8px;" contenteditable="true" dir="auto" onblur="uaf('+ai+',\'sub\',this.innerText)">'+(a.sub||'')+'</div>' +
                 '<div style="font-size:12px;color:#94a3b8;margin-bottom:8px;border-bottom:1px dashed #555;min-height:20px;width:100%;" contenteditable="true" dir="auto" onblur="uaf('+ai+',\'description\',this.innerText)">'+(a.description||'اضغط لكتابة وصف المنطقة...')+'</div>' +
-                '<div style="margin-top:8px;font-size:11px;color:#64748b;border-top:1px solid rgba(255,255,255,0.05);padding-top:6px;display:flex;align-items:center;">الشريحة المرتبطة بالكارت ككل: <div style="margin-right:5px;">' + getSlideSelectHtml(ai, a.targetSlide, 'uaf') + '</div></div>' +
+                '<div style="margin-top:8px;font-size:11px;color:#64748b;border-top:1px solid rgba(255,255,255,0.05);padding-top:6px;">' +
+                '<div style="margin-bottom:5px;">الشريحة المرتبطة بالكارت ككل:</div>' + getSlideSelectHtml(ai, a.targetSlide, 'uaf') + '</div>' +
                 '<div style="font-size:11px;color:#64748b;margin-bottom:4px;margin-top:10px;">المشاريع داخل الكارت:</div>' +
                 pH +
                 '<button onclick="addareaproj('+ai+')" style="margin-top:5px;background:rgba(255,255,255,0.1);border:none;color:#fff;padding:2px 8px;border-radius:4px;font-size:10px;cursor:pointer;">+ إضافة مشروع للكارت</button>' +
@@ -1749,7 +1794,8 @@ function renderCanvas() {
                 '<button class="item-del-btn" onclick="delMallCard('+mi+')" title="حذف المول">&times;</button>' +
                 '<div style="font-size:20px;font-weight:800;margin-bottom:6px;" contenteditable="true" dir="auto" onblur="umallf('+mi+',\'name\',this.innerText)">'+(m.name||'')+'</div>' +
                 '<div style="font-size:13px;color:#94a3b8;" contenteditable="true" dir="auto" onblur="umallf('+mi+',\'sub\',this.innerText)">'+(m.sub||'')+'</div>' +
-                '<div style="margin-top:8px;font-size:11px;color:#64748b;border-top:1px solid rgba(255,255,255,0.05);padding-top:6px;display:flex;align-items:center;">اربط الشريحة: <div style="margin-right:5px;">' + getSlideSelectHtml(mi, m.targetSlide, 'umallf') + '</div></div></div>';
+                '<div style="margin-top:8px;font-size:11px;color:#64748b;border-top:1px solid rgba(255,255,255,0.05);padding-top:6px;">' +
+                '<div style="margin-bottom:5px;">اربط الشريحة:</div>' + getSlideSelectHtml(mi, m.targetSlide, 'umallf') + '</div></div>';
         });
         html = '<div style="width:100%">' +
             '<div contenteditable="true" dir="auto" class="c-badge" onblur="uf(\'badge\',this.innerText)">'+(s.badge||'')+'</div>' +
@@ -1879,7 +1925,9 @@ function openModal(id) {
     } else if (id === 'm-sec') {
         var auth = getStoredAuth();
         document.getElementById('sec-user').value = auth.username;
-        document.getElementById('sec-pass').value = auth.password;
+        document.getElementById('sec-current-pass').value = '';
+        document.getElementById('sec-pass').value = '';
+        document.getElementById('sec-error').style.display = 'none';
     }
     document.getElementById(id).classList.add('active');
 }
@@ -2209,9 +2257,52 @@ function saveCloud() {
 }
 
 function saveSec() {
-    saveStoredAuth({ username: document.getElementById('sec-user').value.trim()||'admin', password: document.getElementById('sec-pass').value.trim()||'Zidan@2026#Developments' });
-    closeModal('m-sec');
-    toast('تم تحديث بيانات الدخول.');
+    var auth = getStoredAuth();
+    var currentPass = document.getElementById('sec-current-pass').value.trim();
+    var newUser = document.getElementById('sec-user').value.trim() || auth.username || 'admin';
+    var newPass = document.getElementById('sec-pass').value.trim();
+    var errEl = document.getElementById('sec-error');
+    var saveBtn = document.getElementById('sec-save-btn');
+
+    errEl.style.display = 'none';
+
+    if (!currentPass) {
+        errEl.textContent = 'اكتب كلمة المرور الحالية للتأكيد.';
+        errEl.style.display = 'block';
+        return;
+    }
+    if (!newPass) {
+        errEl.textContent = 'اكتب كلمة المرور الجديدة.';
+        errEl.style.display = 'block';
+        return;
+    }
+
+    var originalText = saveBtn.textContent;
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'جاري التحديث...';
+
+    remoteChangePassword(auth.username, currentPass, newUser, newPass).then(function(result) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = originalText;
+
+        if (result.status === 'ok') {
+            // Keep a local cache too, so this same browser still works
+            // instantly offline / before the next remote check.
+            saveStoredAuth({ username: newUser, password: newPass });
+            closeModal('m-sec');
+            toast('✅ تم تحديث بيانات الدخول على كل الأجهزة.');
+        } else if (result.status === 'no-server') {
+            // Storage isn't connected on Vercel yet — fall back to the old
+            // per-browser save so the panel still does *something* useful,
+            // but be upfront that it won't sync anywhere else yet.
+            saveStoredAuth({ username: newUser, password: newPass });
+            closeModal('m-sec');
+            toast('⚠️ اتحدثت على هذا الجهاز فقط — لسه مفيش تخزين سحابي متصل (راجع Vercel Storage).');
+        } else {
+            errEl.textContent = result.message || 'تعذّر التحديث، حاول مرة أخرى.';
+            errEl.style.display = 'block';
+        }
+    });
 }
 
 // ── Save / Export ──

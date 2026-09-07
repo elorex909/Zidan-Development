@@ -1,0 +1,10 @@
+{
+  "name": "zidan-development-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Static site + serverless API routes for the Zidan Developments dashboard.",
+  "dependencies": {
+    "@upstash/redis": "^1.34.0",
+    "bcryptjs": "^2.4.3"
+  }
+}
