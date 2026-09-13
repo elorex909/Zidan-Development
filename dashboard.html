@@ -701,23 +701,23 @@
         <label>اللون المخصص</label>
         <div style="display:flex; gap:10px; margin-bottom:20px;">
             <input type="color" id="theme-color-picker" style="width:50px; height:50px; border:none; border-radius:8px; cursor:pointer; padding:0; background:none; flex-shrink:0;" oninput="updateThemePreview(this.value)">
-            <input type="text" id="theme-color-hex" class="modal-input" style="flex:1; margin:0;" placeholder="#ffffff" oninput="handleHexInput(this.value)">
+            <input type="text" id="theme-color-hex" class="modal-input" dir="ltr" style="flex:1; margin:0; text-align:left;" placeholder="#ffffff" oninput="handleHexInput(this.value)">
         </div>
 
         <label>ألوان جاهزة</label>
         <div style="display:flex; gap:10px; margin-bottom:8px; flex-wrap:wrap;">
-            <button class="tbtn" onclick="setTheme('#ffffff')" style="background:#ffffff; color:#000; border:none;">أبيض (افتراضي)</button>
-            <button class="tbtn" onclick="setTheme('#d4af37')" style="background:#d4af37; color:#fff; border:none;">ذهبي</button>
-            <button class="tbtn" onclick="setTheme('#3b82f6')" style="background:#3b82f6; color:#fff; border:none;">أزرق</button>
-            <button class="tbtn" onclick="setTheme('#10b981')" style="background:#10b981; color:#fff; border:none;">أخضر</button>
-            <button class="tbtn" onclick="setTheme('#f87171')" style="background:#f87171; color:#fff; border:none;">أحمر</button>
-            <button class="tbtn" onclick="setTheme('#a855f7')" style="background:#a855f7; color:#fff; border:none;">بنفسجي</button>
+            <button class="rbtn" onclick="setTheme('#ffffff')" style="background:#ffffff; color:#000; border:none;">أبيض (افتراضي)</button>
+            <button class="rbtn" onclick="setTheme('#d4af37')" style="background:#d4af37; color:#fff; border:none;">ذهبي</button>
+            <button class="rbtn" onclick="setTheme('#3b82f6')" style="background:#3b82f6; color:#fff; border:none;">أزرق</button>
+            <button class="rbtn" onclick="setTheme('#10b981')" style="background:#10b981; color:#fff; border:none;">أخضر</button>
+            <button class="rbtn" onclick="setTheme('#f87171')" style="background:#f87171; color:#fff; border:none;">أحمر</button>
+            <button class="rbtn" onclick="setTheme('#a855f7')" style="background:#a855f7; color:#fff; border:none;">بنفسجي</button>
         </div>
-        <div id="theme-hex-error" style="display:none; font-size:12px; color:#f87171; margin-bottom:10px;">صيغة اللون غير صحيحة، استخدم كود Hex مثل ‎#d4af37</div>
+        <div id="theme-hex-error" style="display:none; font-size:12px; color:#f87171; margin-bottom:10px;">صيغة اللون غير صحيحة، استخدم كود Hex مثل #d4af37</div>
 
         <div class="modal-footer">
-            <button class="tbtn" onclick="closeModal('m-theme')">إلغاء</button>
-            <button class="tbtn primary" onclick="saveTheme()">حفظ التغييرات</button>
+            <button class="rbtn" onclick="closeModal('m-theme')">إلغاء</button>
+            <button class="rbtn primary" onclick="saveTheme()">حفظ التغييرات</button>
         </div>
     </div>
 </div>
@@ -732,10 +732,10 @@
         <div style="display:flex; align-items:center; gap:10px; margin-bottom:18px; flex-wrap:wrap;">
             <span style="font-size:12px; color:#94a3b8; font-weight:700;">شكل الرسم:</span>
             <div id="chart-type-switch" style="display:flex; gap:6px;">
-                <button class="tbtn chart-type-btn" data-type="bar" onclick="setChartType('bar')">📶 أعمدة</button>
-                <button class="tbtn chart-type-btn" data-type="line" onclick="setChartType('line')">📈 خطي</button>
-                <button class="tbtn chart-type-btn" data-type="pie" onclick="setChartType('pie')">🥧 دائري</button>
-                <button class="tbtn chart-type-btn" data-type="doughnut" onclick="setChartType('doughnut')">🍩 حلقي</button>
+                <button class="rbtn chart-type-btn" data-type="bar" onclick="setChartType('bar')">📶 أعمدة</button>
+                <button class="rbtn chart-type-btn" data-type="line" onclick="setChartType('line')">📈 خطي</button>
+                <button class="rbtn chart-type-btn" data-type="pie" onclick="setChartType('pie')">🥧 دائري</button>
+                <button class="rbtn chart-type-btn" data-type="doughnut" onclick="setChartType('doughnut')">🍩 حلقي</button>
             </div>
         </div>
 
@@ -757,8 +757,8 @@
         </div>
         
         <div class="modal-footer" style="justify-content:space-between;">
-            <button class="tbtn danger" onclick="clearAnalytics()">🗑️ مسح البيانات</button>
-            <button class="tbtn primary" onclick="closeModal('m-analytics')">إغلاق</button>
+            <button class="rbtn danger" style="background:transparent; border-color:rgba(248,113,113,0.3);" onclick="clearAnalytics()">🗑️ مسح البيانات</button>
+            <button class="rbtn primary" onclick="closeModal('m-analytics')">إغلاق</button>
         </div>
     </div>
 </div>
@@ -1153,8 +1153,9 @@ function addCurrentItem() {
     // Auto-track all saves
     const _originalSaveData = window.savePresentationData;
     window.savePresentationData = function(d) {
-        _originalSaveData(d);
+        const result = _originalSaveData(d);
         pushHistory();
+        return result;
     };
     
     // Add keyboard shortcuts for Undo/Redo

@@ -3657,7 +3657,7 @@
 
         trackSlideTime();
         current = targetIdx;
-        currentSlideTitle = slides[current].querySelector(".c-heading")?.innerText || slides[current].className.split(" ")[1] || "شريحة";
+        currentSlideTitle = slides[current].getAttribute("data-title") || slides[current].querySelector(".c-heading")?.innerText || slides[current].className.split(" ")[1] || "شريحة";
         updateHUD();
         initAdvancedUI();
         checkAndRunCounter();
