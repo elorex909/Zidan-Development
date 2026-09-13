@@ -2026,8 +2026,13 @@ function compressImageFile(file, maxDim, quality) {
 function handleUpload(e) {
     var file = e.target.files && e.target.files[0];
     if (!file) return;
-    compressImageFile(file, 1800, 0.85).then(function(dataUrl){
-        if (dataUrl) applyImg(dataUrl);
+    
+    toast('⏳ جاري رفع الصورة للسحابة... يرجى الانتظار');
+    
+    uploadToCloudinary(file, 'image').then(function(secureUrl){
+        applyImg(secureUrl);
+    }).catch(function(err){
+        toast('⚠️ ' + (typeof err === 'string' ? err : 'فشل رفع الصورة'));
     });
 }
 

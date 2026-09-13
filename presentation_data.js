@@ -119,41 +119,19 @@ const CLOUD_CONFIG_KEY = 'zidan_cloud_endpoint_config_v1';
  * never written into this file.
  */
 const DEFAULT_CLOUD_CONFIG = {
-    endpoint: "https://api.jsonbin.io/v3/b/6a995959da38895dfe3382e9",
-    apiKey: "$2a$10$gHLsiRrx0i73LU7/PNVZZufOl9P0f70b4t5Uoqe2ZjesMZHOhuSoO",
-    keyType: "access", // 'access' = read-only key, sent as X-Access-Key only. Admin keys saved from the dashboard default to 'master' and are sent as X-Master-Key.
+    endpoint: "https://summary-ostrich-123850.upstash.io",
+    writeKey: "gQAAAAAAAePKAAIgcDIzMzk4Njk5N2JkNjM0MDdjOGIyYTkzOGNjZDhkOTkwYQ",
+    readKey: "ggAAAAAAAePKAAIgcDJyUbV6tPETVpXm1iw4-F0-lhr1xC5EsvqeSb4zu--PAQ",
     autoSyncInterval: 8000
 };
 
-const DEFAULT_AUTH = {
-    username: "admin",
-    password: "Zidan@2026#Developments"
-};
-
-let broadcastSync = null;
-try {
-    if (typeof BroadcastChannel !== 'undefined') {
-        broadcastSync = new BroadcastChannel('zidan_sync_channel');
-    }
-} catch (e) {}
-
 function getCloudConfig() {
-    try {
-        const stored = localStorage.getItem(CLOUD_CONFIG_KEY);
-        if (stored) {
-            const parsed = JSON.parse(stored);
-            if (parsed && parsed.endpoint && parsed.endpoint.startsWith('http')) return parsed;
-        }
-    } catch (e) {}
-    // No admin config saved in this browser (e.g. a first-time site visitor) —
-    // fall back to the read-only config baked into the shipped code.
-    return DEFAULT_CLOUD_CONFIG;
+    return DEFAULT_CLOUD_CONFIG; // Hardcoded for Upstash
 }
 
 function saveCloudConfig(cfg) {
-    try {
-        localStorage.setItem(CLOUD_CONFIG_KEY, JSON.stringify(cfg));
-    } catch (e) {}
+    // Disabled since we hardcoded it
+} catch (e) {}
 }
 
 function getPresentationData() {
@@ -190,61 +168,38 @@ async function savePresentationData(data) {
     }
 
     const cloudCfg = getCloudConfig();
-    // keyType 'access' means this is the baked-in, read-only default key
-    // (no admin write key has been configured in this browser yet) — it can
-    // never write, so don't bother making a request that's guaranteed to fail.
-    if (cloudCfg && cloudCfg.endpoint && cloudCfg.endpoint.startsWith('http') && cloudCfg.keyType !== 'access') {
-        try {
-            const headers = { 'Content-Type': 'application/json' };
-            if (cloudCfg.apiKey) {
-                headers['X-Master-Key'] = cloudCfg.apiKey;
-                headers['X-Access-Key'] = cloudCfg.apiKey;
-                headers['Authorization'] = 'Bearer ' + cloudCfg.apiKey;
-            }
-            
-            await fetch(cloudCfg.endpoint, {
-                method: 'PUT',
-                headers: headers,
-                body: JSON.stringify(data)
-            });
-        } catch (err) {
-            console.warn('Cloud push notice:', err);
-        }
+    try {
+        await fetch(cloudCfg.endpoint + '/set/zidan_data', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + cloudCfg.writeKey,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+    } catch (err) {
+        console.warn('Cloud push notice:', err);
     }
 
-    // true only when the local save actually succeeded (e.g. false if the
-    // browser's storage quota was exceeded by a large uploaded file) —
-    // callers that add media items use this to detect & roll back failures.
     return localOk;
 }
 
 async function fetchFromCloud() {
     const cloudCfg = getCloudConfig();
-    if (!cloudCfg || !cloudCfg.endpoint || !cloudCfg.endpoint.startsWith('http')) return null;
-
     try {
-        const headers = {};
-        if (cloudCfg.apiKey) {
-            if (cloudCfg.keyType === 'access') {
-                // Read-only key (e.g. the baked-in default) — must ONLY ever
-                // be sent as X-Access-Key, never as X-Master-Key.
-                headers['X-Access-Key'] = cloudCfg.apiKey;
-            } else {
-                headers['X-Master-Key'] = cloudCfg.apiKey;
-                headers['X-Access-Key'] = cloudCfg.apiKey;
-                headers['Authorization'] = 'Bearer ' + cloudCfg.apiKey;
-            }
-        }
-
-        const res = await fetch(cloudCfg.endpoint, { method: 'GET', headers: headers });
+        const res = await fetch(cloudCfg.endpoint + '/get/zidan_data', { 
+            method: 'GET', 
+            headers: { 'Authorization': 'Bearer ' + cloudCfg.readKey } 
+        });
         if (!res.ok) return null;
         
         let json = await res.json();
-        if (json.record) json = json.record;
-        
-        if (json && json.slides && Array.isArray(json.slides) && json.slides.length > 0) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(json));
-            return json;
+        if (json && json.result) {
+            let parsed = typeof json.result === 'string' ? JSON.parse(json.result) : json.result;
+            if (parsed && parsed.slides && Array.isArray(parsed.slides) && parsed.slides.length > 0) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+                return parsed;
+            }
         }
     } catch (e) {
         console.warn('Cloud pull notice:', e);
