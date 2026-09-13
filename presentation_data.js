@@ -131,7 +131,6 @@ function getCloudConfig() {
 
 function saveCloudConfig(cfg) {
     // Disabled since we hardcoded it
-} catch (e) {}
 }
 
 function getPresentationData() {
