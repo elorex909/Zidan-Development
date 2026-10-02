@@ -102,6 +102,12 @@ const STORAGE_KEY = 'zidan_presentation_live_data_v21';
 const AUTH_KEY = 'zidan_admin_auth_v1';
 const CLOUD_CONFIG_KEY = 'zidan_cloud_endpoint_config_v1';
 
+// Fallback login used only when /api/login isn't reachable (same default as lib/auth.js).
+const DEFAULT_AUTH = { username: 'admin', password: 'Zidan@2026#Developments' };
+
+// Live-sync channel between the dashboard and the open site tab (index.html listens on this name).
+const broadcastSync = (typeof BroadcastChannel !== 'undefined') ? new BroadcastChannel('zidan_sync_channel') : null;
+
 /**
  * Baked-in cloud config, shipped with the site's code (committed to GitHub).
  * This is what makes the gallery/media actually show up for real visitors:
@@ -145,57 +151,102 @@ function getPresentationData() {
     } catch (e) {
         console.warn('Storage read notice:', e);
     }
+    // First visit / cleared storage: use the built-in defaults LOCALLY ONLY.
+    // They must never be pushed to the cloud (or stamped as "newer"), otherwise
+    // any new visitor would overwrite the real saved data with the defaults.
     const freshData = JSON.parse(JSON.stringify(DEFAULT_PRESENTATION_DATA));
-    savePresentationData(freshData);
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(freshData)); } catch (e) {}
     return freshData;
 }
+
+function zdNotify(msg) {
+    try { if (typeof window !== 'undefined' && typeof window.toast === 'function') window.toast(msg); } catch (e) {}
+}
+
+async function pushToCloud(json) {
+    const cloudCfg = getCloudConfig();
+    try {
+        const res = await fetch(cloudCfg.endpoint + '/set/zidan_data', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + cloudCfg.writeKey,
+                'Content-Type': 'application/json'
+            },
+            body: json
+        });
+        if (!res.ok) {
+            console.warn('Cloud push failed, status', res.status);
+            zdNotify('⚠️ اتحفظ على الجهاز بس ومتحفظش على السحابة (كود ' + res.status + ') — التعديل مش هيظهر للزوار.');
+            return false;
+        }
+        return true;
+    } catch (err) {
+        console.warn('Cloud push notice:', err);
+        zdNotify('⚠️ تعذر الاتصال بالسحابة — التعديل اتحفظ على الجهاز بس.');
+        return false;
+    }
+}
+
+// Cloud writes go one after another so an older save can never land after a newer one.
+let _cloudPushChain = Promise.resolve();
 
 async function savePresentationData(data) {
     if (!data) return false;
     data.settings = data.settings || {};
     data.settings.lastUpdated = new Date().toISOString();
 
+    let json = null;
     let localOk = true;
     try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        if (broadcastSync) {
-            broadcastSync.postMessage({ type: 'DATA_UPDATED', data: data, timestamp: Date.now() });
-        }
+        json = JSON.stringify(data);
+        localStorage.setItem(STORAGE_KEY, json);
     } catch (e) {
         console.error('Storage save error:', e);
         localOk = false;
     }
 
-    const cloudCfg = getCloudConfig();
     try {
-        await fetch(cloudCfg.endpoint + '/set/zidan_data', {
-            method: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + cloudCfg.writeKey,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        });
-    } catch (err) {
-        console.warn('Cloud push notice:', err);
+        if (broadcastSync) {
+            broadcastSync.postMessage({ type: 'DATA_UPDATED', data: data, timestamp: Date.now() });
+        }
+    } catch (e) {
+        console.warn('Broadcast notice:', e);
+    }
+
+    if (json) {
+        _cloudPushChain = _cloudPushChain.then(function () { return pushToCloud(json); });
+        await _cloudPushChain;
     }
 
     return localOk;
 }
 
+function zdLastUpdated(obj) {
+    return (obj && obj.settings && Date.parse(obj.settings.lastUpdated)) || 0;
+}
+
 async function fetchFromCloud() {
     const cloudCfg = getCloudConfig();
     try {
-        const res = await fetch(cloudCfg.endpoint + '/get/zidan_data', { 
-            method: 'GET', 
-            headers: { 'Authorization': 'Bearer ' + cloudCfg.readKey } 
+        const res = await fetch(cloudCfg.endpoint + '/get/zidan_data', {
+            method: 'GET',
+            headers: { 'Authorization': 'Bearer ' + cloudCfg.readKey }
         });
         if (!res.ok) return null;
-        
+
         let json = await res.json();
         if (json && json.result) {
             let parsed = typeof json.result === 'string' ? JSON.parse(json.result) : json.result;
             if (parsed && parsed.slides && Array.isArray(parsed.slides) && parsed.slides.length > 0) {
+                // If this browser holds NEWER edits than the cloud (an earlier cloud push
+                // must have failed), keep the local edits and retry the push instead of
+                // overwriting them with the stale cloud copy.
+                let localRaw = null, localObj = null;
+                try { localRaw = localStorage.getItem(STORAGE_KEY); localObj = localRaw && JSON.parse(localRaw); } catch (e) {}
+                if (localObj && zdLastUpdated(localObj) > zdLastUpdated(parsed)) {
+                    _cloudPushChain = _cloudPushChain.then(function () { return pushToCloud(localRaw); });
+                    return null;
+                }
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
                 return parsed;
             }
