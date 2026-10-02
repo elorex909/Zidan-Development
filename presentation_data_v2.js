@@ -71,7 +71,8 @@ const DEFAULT_PRESENTATION_DATA = {
         cloudSyncEnabled: true,
         cloudApiEndpoint: "",
         cloudApiKey: "",
-        lastUpdated: new Date().toISOString()
+        // Epoch on purpose: built-in defaults must NEVER look newer than the cloud copy.
+        lastUpdated: "1970-01-01T00:00:00.000Z"
     },
     slides: [
         { id: "slide-1", type: "intro", title: "المقدمة", logoUrl: "images/logo-white.png", tagline: "زيدان للتطوير العقاري" },
@@ -194,6 +195,8 @@ async function savePresentationData(data) {
     if (!data) return false;
     data.settings = data.settings || {};
     data.settings.lastUpdated = new Date().toISOString();
+    // Only data that went through an explicit save is allowed to be pushed back to the cloud.
+    data.settings.userEdited = true;
 
     let json = null;
     let localOk = true;
@@ -243,7 +246,10 @@ async function fetchFromCloud() {
                 // overwriting them with the stale cloud copy.
                 let localRaw = null, localObj = null;
                 try { localRaw = localStorage.getItem(STORAGE_KEY); localObj = localRaw && JSON.parse(localRaw); } catch (e) {}
-                if (localObj && zdLastUpdated(localObj) > zdLastUpdated(parsed)) {
+                // (Only if that local copy was really edited here — a fresh device holding the
+                // built-in defaults must never overwrite the cloud.)
+                if (localObj && localObj.settings && localObj.settings.userEdited === true &&
+                    zdLastUpdated(localObj) > zdLastUpdated(parsed)) {
                     _cloudPushChain = _cloudPushChain.then(function () { return pushToCloud(localRaw); });
                     return null;
                 }

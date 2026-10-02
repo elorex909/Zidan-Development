@@ -4,7 +4,7 @@
 // serve whatever was cached the first time this site was ever opened —
 // without a bump, updates to those files can be invisible to returning
 // visitors (and to the admin testing their own changes) indefinitely.
-const CACHE_NAME = 'zidan-v7';
+const CACHE_NAME = 'zidan-v8';
 const ASSETS = [
   'index.html',
   'presentation_data_v2.js',
